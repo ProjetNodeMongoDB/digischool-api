@@ -22,8 +22,6 @@ DigiSchool Backend API is a production-ready REST API for managing a school syst
 - Docker containerization
 - Security middleware (Helmet, CORS, Rate-limiting)
 
-**Project Status:** Planning phase - Ready for implementation
-
 ---
 
 ## Quick Start
@@ -75,10 +73,10 @@ curl http://localhost:3000/health
 ## Project Structure
 
 ```
-digital-school-nodejs/
+digischool-api/
 ├── src/
 │   ├── config/          # Database, Swagger configuration
-│   ├── models/          # Mongoose schemas (7 models)
+│   ├── models/          # Mongoose schemas
 │   ├── controllers/     # Request handlers
 │   ├── services/        # Business logic
 │   ├── routes/          # API routes
@@ -89,12 +87,6 @@ digital-school-nodejs/
 ├── tests/
 │   ├── unit/            # Unit tests
 │   └── integration/     # API endpoint tests
-├── docs/                # Detailed documentation
-│   ├── project-overview-pdr.md
-│   ├── codebase-summary.md
-│   ├── code-standards.md
-│   └── system-architecture.md
-├── plans/               # Implementation plans
 ├── .env.example         # Environment template
 ├── package.json
 ├── Dockerfile
@@ -310,26 +302,6 @@ This project is designed for a team of 3 junior developers:
 
 ---
 
-## Detailed Documentation
-
-For comprehensive documentation, see the `/docs` directory:
-
-- **[Project Overview & PDR](docs/project-overview-pdr.md)** - Project goals, requirements, scope, success criteria
-- **[Codebase Summary](docs/codebase-summary.md)** - Architecture, planned structure, technology decisions
-- **[Code Standards](docs/code-standards.md)** - Coding conventions, naming standards, testing patterns
-- **[System Architecture](docs/system-architecture.md)** - Database design, API design, authentication flow, security
-
-### Implementation Plans
-
-Detailed phase-by-phase implementation plans:
-
-- **[Master Plan](plans/20251120-1008-digischool-backend-mvp/plan.md)** - Complete 15-day roadmap
-- **[Phase 1: Foundation](plans/20251120-1008-digischool-backend-mvp/phase-01-foundation.md)** - Project setup and structure
-- **[Phase 2: CRUD Entities](plans/20251120-1008-digischool-backend-mvp/phase-02-crud-entities.md)** - Core entity implementation
-- **[Quick Start Guide](plans/20251120-1008-digischool-backend-mvp/quickstart-guide.md)** - Developer onboarding
-
----
-
 ## Contributing
 
 ### Git Workflow
@@ -380,18 +352,17 @@ kill -9 <PID>
 - Verify JWT_SECRET in .env
 - Ensure token hasn't expired
 
-For more troubleshooting, see [Code Standards - Common Issues](docs/code-standards.md#common-issues--solutions).
 
 ---
 
 ## Roadmap
 
 ### MVP (Current)
-- ✅ Complete CRUD for 6 entities
-- ✅ JWT authentication
-- ✅ Swagger documentation
-- ✅ Docker containerization
-- ✅ 70%+ test coverage
+-  Complete CRUD for 6 entities
+-  JWT authentication
+-  Swagger documentation
+-  Docker containerization
+-  70%+ test coverage
 
 ### Future Enhancements
 - Pagination for large datasets
@@ -406,20 +377,4 @@ For more troubleshooting, see [Code Standards - Common Issues](docs/code-standar
 
 ---
 
-## License
-
-This project is provided for educational purposes.
-
----
-
-## Support
-
-For questions or issues:
-1. Check the [detailed documentation](docs/)
-2. Review the [implementation plans](plans/20251120-1008-digischool-backend-mvp/)
-3. Consult the [code standards](docs/code-standards.md)
-4. Ask your team lead or fellow developers
-
----
-
-**Built with ❤️ for learning and practice**
+**Built with ❤️ for 3 women developers**
