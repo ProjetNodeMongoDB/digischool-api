@@ -292,7 +292,7 @@ Import the API endpoints into Postman for manual testing. All endpoints are docu
 
 ## Development Team
 
-This project is designed for a team of 3 junior developers:
+This project is designed for a team of 3 developers:
 
 - **Developer 1 (Backend Lead):** Project foundation, complex logic, Docker
 - **Developer 2 (API Developer):** CRUD entities, JWT authentication, testing

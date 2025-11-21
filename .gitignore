@@ -2,7 +2,12 @@ node_modules
 digischools.sql
 Sujet.pdf
 .idea
+prd.md
+*.md
+*.sh
 CLAUDE.md
 docs
 plans
+.claude/*
 package-lock.json
+.env
