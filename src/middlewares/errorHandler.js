@@ -1,20 +1,4 @@
 const errorHandler = (err, req, res, next) => {
-    // Structured error logging for Docker Compose visibility
-    const timestamp = new Date().toISOString();
-    const logPrefix = `[${timestamp}] [ERROR]`;
-
-    console.error(`${logPrefix} ========================================`);
-    console.error(`${logPrefix} Request: ${req.method} ${req.path}`);
-    console.error(`${logPrefix} Error Type: ${err.name || 'Unknown'}`);
-    console.error(`${logPrefix} Error Message: ${err.message}`);
-
-    // Log stack trace in development mode or for critical errors
-    if (process.env.NODE_ENV === 'development' || err.statusCode >= 500) {
-        console.error(`${logPrefix} Stack Trace:`);
-        console.error(err.stack);
-    }
-
-    console.error(`${logPrefix} ========================================`);
 
     // Mongoose validation error
     if (err.name === 'ValidationError') {
