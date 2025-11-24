@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// API routes will be added here
+// API routes
 app.use('/api', require('./routes'));
 
 // Global error handler (must be last)

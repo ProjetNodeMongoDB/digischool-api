@@ -4,14 +4,12 @@ class StudentService {
   // Get all students with class population
   async getAllStudents() {
     return await Student.find()
-      .populate('classe', 'nom')
       .sort({ nom: 1 });
   }
 
   // Get student by ID with class population
   async getStudentById(id) {
-    const student = await Student.findById(id)
-      .populate('classe', 'nom');
+    const student = await Student.findById(id);
 
     if (!student) {
       throw new Error('Student not found');
@@ -23,7 +21,7 @@ class StudentService {
   async createStudent(studentData) {
     const student = new Student(studentData);
     await student.save();
-    return await student.populate('classe', 'nom');
+    return student;
   }
 
   // Update student
@@ -32,7 +30,7 @@ class StudentService {
       id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('classe', 'nom');
+    );
 
     if (!student) {
       throw new Error('Student not found');
