@@ -1,4 +1,5 @@
 const Class = require('../models/Class');
+const Teacher = require('../models/Teacher');
 
 class ClassService {
   async getAllClasses() {
@@ -14,12 +15,28 @@ class ClassService {
   }
 
   async createClass(classData) {
+    // Verify teacher exists
+    const teacher = await Teacher.findById(classData.prof);
+    if (!teacher) {
+      throw new Error('Teacher not found');
+    }
+
     const classe = new Class(classData);
     await classe.save();
-    return await classe.populate('prof', 'nom prenom');
+
+    // Fetch the saved document with populated teacher
+    return await Class.findById(classe._id).populate('prof', 'nom prenom');
   }
 
   async updateClass(id, updateData) {
+    // Verify teacher exists if prof is being updated
+    if (updateData.prof) {
+      const teacher = await Teacher.findById(updateData.prof);
+      if (!teacher) {
+        throw new Error('Teacher not found');
+      }
+    }
+
     const classe = await Class.findByIdAndUpdate(
       id,
       updateData,
