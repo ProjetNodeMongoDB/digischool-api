@@ -12,15 +12,8 @@ describe('Class API', () => {
 		await connectDB();
 	});
 
-	afterAll(async () => {
-		await mongoose.connection.close();
-	});
-
-	beforeEach(async () => {
-		await Class.deleteMany({});
-		await Teacher.deleteMany({});
-
-		// Create a teacher to use in tests
+	beforeAll(async () => {
+		// Create a teacher once for all tests in this suite
 		const teacher = await Teacher.create({
 			nom: 'Dupont',
 			prenom: 'Jean',
@@ -29,6 +22,17 @@ describe('Class API', () => {
 			sexe: 'HOMME',
 		});
 		teacherId = teacher._id;
+	});
+
+	beforeEach(async () => {
+		// Only clean up classes, not teachers (to avoid interference)
+		await Class.deleteMany({});
+	});
+
+	afterAll(async () => {
+		// Clean up the teacher created for this test suite
+		await Teacher.findByIdAndDelete(teacherId);
+		await mongoose.connection.close();
 	});
 
 	describe('POST /api/classes', () => {
