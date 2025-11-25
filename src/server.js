@@ -38,13 +38,13 @@ const server = app.listen(PORT, () => {
  * - Log these errors to monitoring tools (Sentry, LogRocket, etc.) in production
  */
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ UNHANDLED PROMISE REJECTION! Shutting down gracefully...');
+  console.error('UNHANDLED PROMISE REJECTION! Shutting down gracefully...');
   console.error('Reason:', reason);
   console.error('Promise:', promise);
 
   // Close server gracefully (finish pending requests)
   server.close(() => {
-    console.error('💥 Process terminated due to unhandled promise rejection');
+    console.error('Process terminated due to unhandled promise rejection');
     process.exit(1);
   });
 });
@@ -70,12 +70,12 @@ process.on('unhandledRejection', (reason, promise) => {
  * - Monitor these errors - they indicate critical bugs in your codebase
  */
 process.on('uncaughtException', (error) => {
-  console.error('❌ UNCAUGHT EXCEPTION! Shutting down immediately...');
+  console.error('UNCAUGHT EXCEPTION! Shutting down immediately...');
   console.error('Error:', error.name);
   console.error('Message:', error.message);
   console.error('Stack:', error.stack);
 
   // Exit immediately (app state is corrupted)
-  console.error('💥 Process terminated due to uncaught exception');
+  console.error('Process terminated due to uncaught exception');
   process.exit(1);
 });
