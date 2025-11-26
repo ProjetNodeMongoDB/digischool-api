@@ -4,6 +4,12 @@ coverage/
 digischools.sql
 
 *.pdf
+*.html
+*.xml
+*.css
+*json
+coverage/*
+*.tmp
 
 *.log
 *.md
