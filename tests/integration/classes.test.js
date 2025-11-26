@@ -3,16 +3,24 @@ const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Class = require('../../src/models/Class');
 const Teacher = require('../../src/models/Teacher');
-const connectDB = require('../../src/config/database');
+const User = require('../../src/models/User');
 
 describe('Class API', () => {
 	let teacherId;
+	let authToken;
 
 	beforeAll(async () => {
-		await connectDB();
-	});
+		// Create a user and get auth token for protected routes
+		const registerResponse = await request(app)
+			.post('/api/auth/register')
+			.send({
+				username: 'testuser',
+				email: 'test@example.com',
+				password: 'Test123456'
+			});
 
-	beforeAll(async () => {
+		authToken = registerResponse.body.data.token;
+
 		// Create a teacher once for all tests in this suite
 		const teacher = await Teacher.create({
 			nom: 'Dupont',
@@ -32,7 +40,7 @@ describe('Class API', () => {
 	afterAll(async () => {
 		// Clean up the teacher created for this test suite
 		await Teacher.findByIdAndDelete(teacherId);
-		await mongoose.connection.close();
+		await User.deleteMany({});
 	});
 
 	describe('POST /api/classes', () => {

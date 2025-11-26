@@ -2,15 +2,28 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Teacher = require('../../src/models/Teacher');
-const connectDB = require('../../src/config/database');
+const User = require('../../src/models/User');
 
 describe('Teacher API', () => {
+  let authToken;
+
   beforeAll(async () => {
-    await connectDB();
+    // Create a user and get auth token for protected routes
+    const registerResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        username: 'testuser',
+        email: 'test@example.com',
+        password: 'Test123456'
+      });
+
+    authToken = registerResponse.body.data.token;
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    // Clean up after tests
+    await Teacher.deleteMany({});
+    await User.deleteMany({});
   });
 
   beforeEach(async () => {
@@ -29,6 +42,7 @@ describe('Teacher API', () => {
 
       const response = await request(app)
         .post('/api/teachers')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(teacherData)
         .expect('Content-Type', /json/)
         .expect(201);
@@ -41,6 +55,7 @@ describe('Teacher API', () => {
     it('should return 400 for missing required fields', async () => {
       const response = await request(app)
         .post('/api/teachers')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({})
         .expect(400);
 
@@ -58,6 +73,7 @@ describe('Teacher API', () => {
 
       const response = await request(app)
         .post('/api/teachers')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(teacherData)
         .expect(400);
 
@@ -84,6 +100,7 @@ describe('Teacher API', () => {
 
       const response = await request(app)
         .get('/api/teachers')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -103,6 +120,7 @@ describe('Teacher API', () => {
 
       const response = await request(app)
         .get(`/api/teachers/${teacher._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -112,6 +130,7 @@ describe('Teacher API', () => {
     it('should return 400 for invalid ID format', async () => {
       const response = await request(app)
         .get('/api/teachers/invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);
@@ -121,6 +140,7 @@ describe('Teacher API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .get(`/api/teachers/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(500);
     });
   });
@@ -143,6 +163,7 @@ describe('Teacher API', () => {
 
       const response = await request(app)
         .put(`/api/teachers/${teacher._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
 
@@ -162,6 +183,7 @@ describe('Teacher API', () => {
 
       const response = await request(app)
         .delete(`/api/teachers/${teacher._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);

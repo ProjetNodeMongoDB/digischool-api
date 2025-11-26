@@ -2,17 +2,29 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Student = require('../../src/models/Student');
-const connectDB = require('../../src/config/database');
+const User = require('../../src/models/User');
 
 describe('Student API', () => {
   let testClassId;
+  let authToken;
 
   beforeAll(async () => {
-    await connectDB();
+    // Create a user and get auth token for protected routes
+    const registerResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        username: 'testuser',
+        email: 'test@example.com',
+        password: 'Test123456'
+      });
+
+    authToken = registerResponse.body.data.token;
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    // Clean up after tests
+    await Student.deleteMany({});
+    await User.deleteMany({});
   });
 
   beforeEach(async () => {
@@ -36,6 +48,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .post('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(studentData)
         .expect('Content-Type', /json/)
         .expect(201);
