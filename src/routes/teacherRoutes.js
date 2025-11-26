@@ -37,8 +37,8 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid teacher ID'),
 ];
 
-// Routes
-router.get('/', teacherController.getAll); // Public - list all teachers
+// Routes with authentication
+router.get('/', protect, teacherController.getAll);
 router.get('/:id', protect, idValidation, validate, teacherController.getById);
 router.post('/', protect, teacherValidationRules, validate, teacherController.create);
 router.put('/:id', protect, idValidation, teacherValidationRules, validate, teacherController.update);

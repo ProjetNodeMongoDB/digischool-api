@@ -20,7 +20,7 @@ const idValidation = [
 ];
 
 // Routes with JWT authentication (Phase 4)
-router.get('/', subjectController.getAll); // Public - list all subjects
+router.get('/', protect, subjectController.getAll);
 router.get('/:id', protect, idValidation, validate, subjectController.getById);
 router.post('/', protect, subjectValidationRules, validate, subjectController.create);
 router.put('/:id', protect, idValidation, subjectValidationRules, validate, subjectController.update);
