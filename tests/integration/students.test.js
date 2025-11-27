@@ -65,6 +65,7 @@ describe('Student API', () => {
     it('should return 400 for missing required fields', async () => {
       const response = await request(app)
         .post('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({})
         .expect(400);
 
@@ -84,6 +85,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .post('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(studentData)
         .expect(400);
 
@@ -101,6 +103,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .post('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(studentData)
         .expect(400);
 
@@ -122,6 +125,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .post('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(studentData)
         .expect(400);
 
@@ -139,6 +143,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .post('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(studentData)
         .expect(201);
 
@@ -168,6 +173,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .get('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -178,6 +184,7 @@ describe('Student API', () => {
     it('should return empty array when no students exist', async () => {
       const response = await request(app)
         .get('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -198,6 +205,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .get(`/api/students/${student._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -208,6 +216,7 @@ describe('Student API', () => {
     it('should return 400 for invalid ID format', async () => {
       const response = await request(app)
         .get('/api/students/invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);
@@ -218,6 +227,7 @@ describe('Student API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .get(`/api/students/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(500);
 
       expect(response.body.success).toBe(false);
@@ -244,6 +254,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .put(`/api/students/${student._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
 
@@ -270,6 +281,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .put(`/api/students/${student._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
@@ -287,6 +299,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .put('/api/students/invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
@@ -306,6 +319,7 @@ describe('Student API', () => {
 
       const response = await request(app)
         .delete(`/api/students/${student._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -318,6 +332,7 @@ describe('Student API', () => {
     it('should return 400 for invalid ID format', async () => {
       const response = await request(app)
         .delete('/api/students/invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);
@@ -327,6 +342,7 @@ describe('Student API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .delete(`/api/students/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(500);
 
       expect(response.body.success).toBe(false);

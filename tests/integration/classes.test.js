@@ -52,6 +52,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData)
 				.expect('Content-Type', /json/)
 				.expect(201);
@@ -67,6 +68,7 @@ describe('Class API', () => {
 		it('should return 400 for missing required fields', async () => {
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send({})
 				.expect(400);
 
@@ -81,6 +83,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData)
 				.expect(400);
 
@@ -95,6 +98,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData)
 				.expect(400);
 
@@ -110,6 +114,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData)
 				.expect(400);
 
@@ -125,6 +130,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData)
 				.expect(400);
 
@@ -144,6 +150,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData);
 
 			expect(response.body.success).toBe(false);
@@ -159,6 +166,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.post('/api/classes')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(classData);
 
 			expect(response.body.success).toBe(false);
@@ -187,7 +195,7 @@ describe('Class API', () => {
 				},
 			]);
 
-			const response = await request(app).get('/api/classes').expect(200);
+			const response = await request(app).get('/api/classes').set('Authorization', `Bearer ${authToken}`).expect(200);
 
 			expect(response.body.success).toBe(true);
 			expect(response.body.count).toBe(2);
@@ -198,7 +206,7 @@ describe('Class API', () => {
 		});
 
 		it('should return empty array when no classes exist', async () => {
-			const response = await request(app).get('/api/classes').expect(200);
+			const response = await request(app).get('/api/classes').set('Authorization', `Bearer ${authToken}`).expect(200);
 
 			expect(response.body.success).toBe(true);
 			expect(response.body.count).toBe(0);
@@ -221,7 +229,7 @@ describe('Class API', () => {
 				},
 			]);
 
-			const response = await request(app).get('/api/classes').expect(200);
+			const response = await request(app).get('/api/classes').set('Authorization', `Bearer ${authToken}`).expect(200);
 
 			expect(response.body.data[0].nom).toBe('CE2');
 			expect(response.body.data[1].nom).toBe('CM1');
@@ -238,6 +246,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.get(`/api/classes/${classe._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -251,6 +260,7 @@ describe('Class API', () => {
 		it('should return 400 for invalid ID format', async () => {
 			const response = await request(app)
 				.get('/api/classes/invalid-id')
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(400);
 
 			expect(response.body.success).toBe(false);
@@ -260,6 +270,7 @@ describe('Class API', () => {
 			const fakeId = new mongoose.Types.ObjectId();
 			const response = await request(app)
 				.get(`/api/classes/${fakeId}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(500);
 
 			expect(response.body.success).toBe(false);
@@ -280,6 +291,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.put(`/api/classes/${classe._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(200);
 
@@ -310,6 +322,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.put(`/api/classes/${classe._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(200);
 
@@ -326,6 +339,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.put('/api/classes/invalid-id')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(400);
 
@@ -341,6 +355,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.put(`/api/classes/${fakeId}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(500);
 
@@ -360,6 +375,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.put(`/api/classes/${classe._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(400);
 
@@ -379,6 +395,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.put(`/api/classes/${classe._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(400);
 
@@ -395,6 +412,7 @@ describe('Class API', () => {
 
 			const response = await request(app)
 				.delete(`/api/classes/${classe._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -407,6 +425,7 @@ describe('Class API', () => {
 		it('should return 400 for invalid ID format', async () => {
 			const response = await request(app)
 				.delete('/api/classes/invalid-id')
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(400);
 
 			expect(response.body.success).toBe(false);
@@ -416,6 +435,7 @@ describe('Class API', () => {
 			const fakeId = new mongoose.Types.ObjectId();
 			const response = await request(app)
 				.delete(`/api/classes/${fakeId}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(500);
 
 			expect(response.body.success).toBe(false);
