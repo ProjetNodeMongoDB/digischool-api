@@ -7,18 +7,26 @@ const User = require('../../src/models/User');
 describe('Student API', () => {
   let testClassId;
   let authToken;
+  let userId;
 
   beforeAll(async () => {
     // Create a user and get auth token for protected routes
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        username: 'testuser',
-        email: 'test@example.com',
+        username: 'student-test-admin',
+        email: 'student-tests@example.com',
         password: 'Test123456'
       });
 
+    userId = registerResponse.body.data.user._id;
     authToken = registerResponse.body.data.token;
+
+    // Update user role to admin for testing CRUD operations
+    // First, we need to create an admin user to update roles
+    // For tests, we'll use a workaround by directly updating via User model
+    const User = require('../../src/models/User');
+    await User.findByIdAndUpdate(userId, { role: 'admin' });
   });
 
   afterAll(async () => {

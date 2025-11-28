@@ -3,7 +3,7 @@ const router = express.Router();
 const classController = require('../controllers/classController');
 const { body, param } = require('express-validator');
 const { validate } = require('../middlewares/validation');
-const { protect } = require('../middlewares/authMiddleware');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 // Validation rules
 const classValidationRules = [
@@ -23,8 +23,8 @@ const idValidation = [
 // Routes with authentication
 router.get('/', protect, classController.getAll);
 router.get('/:id', protect, idValidation, validate, classController.getById);
-router.post('/', protect, classValidationRules, validate, classController.create);
-router.put('/:id', protect, idValidation, classValidationRules, validate, classController.update);
-router.delete('/:id', protect, idValidation, validate, classController.delete);
+router.post('/', protect, authorize('admin', 'teacher'), classValidationRules, validate, classController.create);
+router.put('/:id', protect, authorize('admin', 'teacher'), idValidation, classValidationRules, validate, classController.update);
+router.delete('/:id', protect, authorize('admin'), idValidation, validate, classController.delete);
 
 module.exports = router;

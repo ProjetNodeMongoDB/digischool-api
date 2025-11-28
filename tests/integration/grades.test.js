@@ -7,14 +7,31 @@ const Teacher = require('../../src/models/Teacher');
 const Class = require('../../src/models/Class');
 const Subject = require('../../src/models/Subject');
 const Trimester = require('../../src/models/Trimester');
+const User = require('../../src/models/User');
 const connectDB = require('../../src/config/database');
 
 describe('Grade API', () => {
 	let studentId, classId, subjectId, teacherId, trimesterId;
 	let student2Id, subject2Id, class2Id, trimester2Id;
+	let authToken;
+	let userId;
 
 	beforeAll(async () => {
-		await connectDB();
+		// Create a user and get auth token for protected routes
+		const registerResponse = await request(app)
+			.post('/api/auth/register')
+			.send({
+				username: 'grade-test-teacher',
+				email: 'grade-tests@example.com',
+				password: 'Test123456'
+			});
+
+		userId = registerResponse.body.data.user._id;
+		authToken = registerResponse.body.data.token;
+
+		// Update user role to admin for testing CRUD operations (DELETE requires admin)
+		const User = require('../../src/models/User');
+		await User.findByIdAndUpdate(userId, { role: 'admin' });
 
 		const teacher = await Teacher.create({
 			nom: 'Dupont',
@@ -89,6 +106,7 @@ describe('Grade API', () => {
 		await Class.deleteMany({});
 		await Subject.deleteMany({});
 		await Trimester.deleteMany({});
+		await User.deleteMany({});
 		await mongoose.connection.close();
 	});
 
@@ -106,6 +124,7 @@ describe('Grade API', () => {
 
 			const response = await request(app)
 				.post('/api/grades')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(gradeData)
 				.expect(201);
 
@@ -128,6 +147,7 @@ describe('Grade API', () => {
 
 			const response = await request(app)
 				.post('/api/grades')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(gradeData)
 				.expect(400);
 
@@ -137,6 +157,7 @@ describe('Grade API', () => {
 		it('should return 400 for missing required fields', async () => {
 			const response = await request(app)
 				.post('/api/grades')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send({ note: 15 })
 				.expect(400);
 
@@ -156,6 +177,7 @@ describe('Grade API', () => {
 
 			const response = await request(app)
 				.post('/api/grades')
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(gradeData)
 				.expect(400);
 
@@ -217,6 +239,7 @@ describe('Grade API', () => {
 		it('should return all grades', async () => {
 			const response = await request(app)
 				.get('/api/grades')
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -226,6 +249,7 @@ describe('Grade API', () => {
 		it('should filter grades by student', async () => {
 			const response = await request(app)
 				.get('/api/grades?student=' + studentId)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -235,6 +259,7 @@ describe('Grade API', () => {
 		it('should filter grades by subject', async () => {
 			const response = await request(app)
 				.get('/api/grades?subject=' + subjectId)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -244,6 +269,7 @@ describe('Grade API', () => {
 		it('should filter grades by class', async () => {
 			const response = await request(app)
 				.get('/api/grades?class=' + classId)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -253,6 +279,7 @@ describe('Grade API', () => {
 		it('should filter grades by trimester', async () => {
 			const response = await request(app)
 				.get('/api/grades?trimester=' + trimesterId)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -274,6 +301,7 @@ describe('Grade API', () => {
 
 			const response = await request(app)
 				.get('/api/grades/' + grade._id)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -283,6 +311,7 @@ describe('Grade API', () => {
 		it('should return 400 for invalid ID', async () => {
 			const response = await request(app)
 				.get('/api/grades/invalid-id')
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(400);
 
 			expect(response.body.success).toBe(false);
@@ -313,6 +342,7 @@ describe('Grade API', () => {
 
 			const response = await request(app)
 				.put('/api/grades/' + grade._id)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(200);
 
@@ -335,6 +365,7 @@ describe('Grade API', () => {
 
 			const response = await request(app)
 				.delete('/api/grades/' + grade._id)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -343,6 +374,7 @@ describe('Grade API', () => {
 		it('should return 400 for invalid ID', async () => {
 			const response = await request(app)
 				.delete('/api/grades/invalid-id')
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(400);
 
 			expect(response.body.success).toBe(false);

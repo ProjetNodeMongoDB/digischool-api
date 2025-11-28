@@ -8,18 +8,24 @@ const User = require('../../src/models/User');
 describe('Class API', () => {
 	let teacherId;
 	let authToken;
+	let userId;
 
 	beforeAll(async () => {
 		// Create a user and get auth token for protected routes
 		const registerResponse = await request(app)
 			.post('/api/auth/register')
 			.send({
-				username: 'testuser',
-				email: 'test@example.com',
+				username: 'class-test-admin',
+				email: 'class-tests@example.com',
 				password: 'Test123456'
 			});
 
+		userId = registerResponse.body.data.user._id;
 		authToken = registerResponse.body.data.token;
+
+		// Update user role to admin for testing CRUD operations
+		const User = require('../../src/models/User');
+		await User.findByIdAndUpdate(userId, { role: 'admin' });
 
 		// Create a teacher once for all tests in this suite
 		const teacher = await Teacher.create({

@@ -6,18 +6,24 @@ const User = require('../../src/models/User');
 
 describe('Teacher API', () => {
   let authToken;
+  let userId;
 
   beforeAll(async () => {
     // Create a user and get auth token for protected routes
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        username: 'testuser',
-        email: 'test@example.com',
+        username: 'teacher-test-admin',
+        email: 'teacher-tests@example.com',
         password: 'Test123456'
       });
 
+    userId = registerResponse.body.data.user._id;
     authToken = registerResponse.body.data.token;
+
+    // Update user role to admin for testing CRUD operations
+    const User = require('../../src/models/User');
+    await User.findByIdAndUpdate(userId, { role: 'admin' });
   });
 
   afterAll(async () => {
