@@ -5,6 +5,13 @@ const { body, param } = require('express-validator');
 const { validate } = require('../middlewares/validation');
 const { protect } = require('../middlewares/authMiddleware');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Teachers
+ *   description: Teacher management endpoints
+ */
+
 // Validation rules
 const teacherValidationRules = [
   body('nom')
@@ -36,6 +43,212 @@ const teacherValidationRules = [
 const idValidation = [
   param('id').isMongoId().withMessage('Invalid teacher ID'),
 ];
+
+/**
+ * @swagger
+ * /api/teachers:
+ *   get:
+ *     summary: Get all teachers
+ *     tags: [Teachers]
+ *     responses:
+ *       200:
+ *         description: List of all teachers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Teacher'
+ *       500:
+ *         description: Server error
+ *
+ *   post:
+ *     summary: Create a new teacher
+ *     tags: [Teachers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nom
+ *               - prenom
+ *               - sexe
+ *               - dateNaissance
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: Dupont
+ *               prenom:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: Jean
+ *               sexe:
+ *                 type: string
+ *                 enum: [HOMME, FEMME]
+ *                 example: HOMME
+ *               dateNaissance:
+ *                 type: string
+ *                 format: date
+ *                 example: 1980-05-15
+ *               adresse:
+ *                 type: string
+ *                 maxLength: 250
+ *                 example: 123 Rue de Paris, 75001 Paris
+ *     responses:
+ *       201:
+ *         description: Teacher created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Teacher'
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/teachers/{id}:
+ *   get:
+ *     summary: Get teacher by ID
+ *     tags: [Teachers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the teacher
+ *         example: 507f1f77bcf86cd799439011
+ *     responses:
+ *       200:
+ *         description: Teacher details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Teacher'
+ *       400:
+ *         description: Invalid ID format
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ *
+ *   put:
+ *     summary: Update teacher by ID
+ *     tags: [Teachers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the teacher
+ *         example: 507f1f77bcf86cd799439011
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: Dupont
+ *               prenom:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: Jean
+ *               sexe:
+ *                 type: string
+ *                 enum: [HOMME, FEMME]
+ *                 example: HOMME
+ *               dateNaissance:
+ *                 type: string
+ *                 format: date
+ *                 example: 1980-05-15
+ *               adresse:
+ *                 type: string
+ *                 maxLength: 250
+ *                 example: 123 Rue de Paris, 75001 Paris
+ *     responses:
+ *       200:
+ *         description: Teacher updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Teacher'
+ *       400:
+ *         description: Validation error or invalid ID
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ *
+ *   delete:
+ *     summary: Delete teacher by ID
+ *     tags: [Teachers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the teacher
+ *         example: 507f1f77bcf86cd799439011
+ *     responses:
+ *       200:
+ *         description: Teacher deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Teacher deleted successfully
+ *       400:
+ *         description: Invalid ID format
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ */
 
 // Routes
 router.get('/', teacherController.getAll); // Public - list all teachers
