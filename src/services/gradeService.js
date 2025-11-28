@@ -16,7 +16,7 @@ class GradeService {
     if (filters.trimester) query.idtrimestre = filters.trimester;
 
     return await Grade.find(query)
-      .populate('ideleve', 'nom prenom')
+      .populate('ideleve', 'nom prenom dateNaissance')
       .populate('idclasse', 'nom')
       .populate('idmatiere', 'nom')
       .populate('idprof', 'nom prenom')
@@ -32,6 +32,10 @@ class GradeService {
       .populate('idprof', 'nom prenom')
       .populate('idtrimestre', 'nom date');
 
+    // NOTE: This check only verifies if the Grade document exists.
+    // It does NOT validate if the referenced entities (student, class, subject, teacher, trimester) exist.
+    // If a reference ID doesn't exist, .populate() returns null for that field without throwing an error.
+    // Reference validation is performed in createGrade() and updateGrade() before saving.
     if (!grade) {
       throw new Error('Grade not found');
     }
@@ -40,30 +44,37 @@ class GradeService {
   }
 
   async createGrade(gradeData) {
-    // Verify all referenced entities exist
+    // Verify all referenced entities exist before CREATE operation
+    // If validation fails here, it means the CREATE operation cannot proceed
+    // because one or more referenced entities don't exist in the database
     const student = await Student.findById(gradeData.ideleve);
     if (!student) {
-      throw new Error('Student not found');
+      throw new Error(`Referenced student (${gradeData.ideleve}) not found`);
     }
 
     const classe = await Class.findById(gradeData.idclasse);
     if (!classe) {
-      throw new Error('Class not found');
+      throw new Error(`Referenced class (${gradeData.idclasse}) not found`);
+    }
+
+    // Verify student belongs to the specified class
+    if (student.classe.toString() !== gradeData.idclasse.toString()) {
+      throw new Error('Student is not in the specified class');
     }
 
     const subject = await Subject.findById(gradeData.idmatiere);
     if (!subject) {
-      throw new Error('Subject not found');
+      throw new Error(`Referenced subject (${gradeData.idmatiere}) not found`);
     }
 
     const teacher = await Teacher.findById(gradeData.idprof);
     if (!teacher) {
-      throw new Error('Teacher not found');
+      throw new Error(`Referenced teacher (${gradeData.idprof}) not found`);
     }
 
     const trimester = await Trimester.findById(gradeData.idtrimestre);
     if (!trimester) {
-      throw new Error('Trimester not found');
+      throw new Error(`Referenced trimester (${gradeData.idtrimestre}) not found`);
     }
 
     const grade = new Grade(gradeData);
@@ -71,7 +82,7 @@ class GradeService {
 
     // Fetch the saved document with all populated references
     return await Grade.findById(grade._id)
-      .populate('ideleve', 'nom prenom')
+      .populate('ideleve', 'nom prenom dateNaissance')
       .populate('idclasse', 'nom')
       .populate('idmatiere', 'nom')
       .populate('idprof', 'nom prenom')
@@ -79,39 +90,63 @@ class GradeService {
   }
 
   async updateGrade(id, gradeData) {
-    // Verify referenced entities exist if they're being updated
+    // Verify referenced entities exist if they're being updated in UPDATE operation
+    // If validation fails here, it means the UPDATE operation cannot proceed
+    // because one or more referenced entities don't exist in the database
+    //
+    // ANSWER: createGrade validates ALL 5 refs (mandatory), updateGrade validates ONLY changed refs (partial updates)
+    // TODO: Optimize validation code - consider extracting validation logic to reduce duplication
+
+    // Fetch current grade to validate student-class relationship when updating
+    const currentGrade = await Grade.findById(id);
+    if (!currentGrade) {
+      throw new Error('Grade not found');
+    }
+
+    let student;
     if (gradeData.ideleve) {
-      const student = await Student.findById(gradeData.ideleve);
+      student = await Student.findById(gradeData.ideleve);
       if (!student) {
-        throw new Error('Student not found');
+        throw new Error(`Referenced student (${gradeData.ideleve}) not found`);
       }
     }
 
+    let classe;
     if (gradeData.idclasse) {
-      const classe = await Class.findById(gradeData.idclasse);
+      classe = await Class.findById(gradeData.idclasse);
       if (!classe) {
-        throw new Error('Class not found');
+        throw new Error(`Referenced class (${gradeData.idclasse}) not found`);
+      }
+    }
+
+    // Verify student belongs to class when either is being updated
+    if (gradeData.ideleve || gradeData.idclasse) {
+      const studentToCheck = student || await Student.findById(currentGrade.ideleve);
+      const classToCheck = gradeData.idclasse || currentGrade.idclasse;
+
+      if (studentToCheck.classe.toString() !== classToCheck.toString()) {
+        throw new Error('Student is not in the specified class');
       }
     }
 
     if (gradeData.idmatiere) {
       const subject = await Subject.findById(gradeData.idmatiere);
       if (!subject) {
-        throw new Error('Subject not found');
+        throw new Error(`Referenced subject (${gradeData.idmatiere}) not found`);
       }
     }
 
     if (gradeData.idprof) {
       const teacher = await Teacher.findById(gradeData.idprof);
       if (!teacher) {
-        throw new Error('Teacher not found');
+        throw new Error(`Referenced teacher (${gradeData.idprof}) not found`);
       }
     }
 
     if (gradeData.idtrimestre) {
       const trimester = await Trimester.findById(gradeData.idtrimestre);
       if (!trimester) {
-        throw new Error('Trimester not found');
+        throw new Error(`Referenced trimester (${gradeData.idtrimestre}) not found`);
       }
     }
 
@@ -120,7 +155,7 @@ class GradeService {
       gradeData,
       { new: true, runValidators: true }
     )
-      .populate('ideleve', 'nom prenom')
+      .populate('ideleve', 'nom prenom dateNaissance')
       .populate('idclasse', 'nom')
       .populate('idmatiere', 'nom')
       .populate('idprof', 'nom prenom')

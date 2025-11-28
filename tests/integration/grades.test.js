@@ -11,13 +11,11 @@ const connectDB = require('../../src/config/database');
 
 describe('Grade API', () => {
 	let studentId, classId, subjectId, teacherId, trimesterId;
-	let student2Id, subject2Id;
+	let student2Id, subject2Id, class2Id, trimester2Id;
 
 	beforeAll(async () => {
 		await connectDB();
-	});
 
-	beforeAll(async () => {
 		const teacher = await Teacher.create({
 			nom: 'Dupont',
 			prenom: 'Jean',
@@ -48,6 +46,18 @@ describe('Grade API', () => {
 			date: new Date('2024-09-01')
 		});
 		trimesterId = trimester._id;
+
+		const trimester2 = await Trimester.create({
+			nom: 'Trim 2',
+			date: new Date('2025-01-01')
+		});
+		trimester2Id = trimester2._id;
+
+		const classe2 = await Class.create({
+			nom: 'CM2',
+			prof: teacherId,
+		});
+		class2Id = classe2._id;
 
 		const student = await Student.create({
 			nom: 'Martin',
@@ -173,6 +183,33 @@ describe('Grade API', () => {
 					idtrimestre: trimesterId,
 					note: 12,
 					coefficient: 2
+				},
+				{
+					ideleve: studentId,
+					idclasse: classId,
+					idmatiere: subject2Id,
+					idprof: teacherId,
+					idtrimestre: trimesterId,
+					note: 14,
+					coefficient: 1
+				},
+				{
+					ideleve: studentId,
+					idclasse: class2Id,
+					idmatiere: subjectId,
+					idprof: teacherId,
+					idtrimestre: trimesterId,
+					note: 16,
+					coefficient: 2
+				},
+				{
+					ideleve: studentId,
+					idclasse: classId,
+					idmatiere: subjectId,
+					idprof: teacherId,
+					idtrimestre: trimester2Id,
+					note: 18,
+					coefficient: 2
 				}
 			]);
 		});
@@ -183,7 +220,7 @@ describe('Grade API', () => {
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
-			expect(response.body.count).toBe(2);
+			expect(response.body.count).toBe(5);
 		});
 
 		it('should filter grades by student', async () => {
@@ -191,7 +228,35 @@ describe('Grade API', () => {
 				.get('/api/grades?student=' + studentId)
 				.expect(200);
 
-			expect(response.body.count).toBe(1);
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(4);
+		});
+
+		it('should filter grades by subject', async () => {
+			const response = await request(app)
+				.get('/api/grades?subject=' + subjectId)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(4);
+		});
+
+		it('should filter grades by class', async () => {
+			const response = await request(app)
+				.get('/api/grades?class=' + classId)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(4);
+		});
+
+		it('should filter grades by trimester', async () => {
+			const response = await request(app)
+				.get('/api/grades?trimester=' + trimesterId)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(4);
 		});
 	});
 
