@@ -199,6 +199,76 @@ describe('Student API', () => {
       expect(response.body.count).toBe(0);
       expect(response.body.data).toHaveLength(0);
     });
+
+    it('should get students by class ID', async () => {
+      const anotherClassId = new mongoose.Types.ObjectId();
+
+      await Student.create([
+        {
+          nom: 'Martin',
+          prenom: 'Sophie',
+          classe: testClassId,
+          dateNaissance: '2010-03-20',
+          sexe: 'FEMME',
+        },
+        {
+          nom: 'Dubois',
+          prenom: 'Pierre',
+          classe: testClassId,
+          dateNaissance: '2011-05-15',
+          sexe: 'HOMME',
+        },
+        {
+          nom: 'Garcia',
+          prenom: 'Juan',
+          classe: anotherClassId,
+          dateNaissance: '2010-08-10',
+          sexe: 'HOMME',
+        },
+      ]);
+
+      const response = await request(app)
+        .get(`/api/students?classe=${testClassId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(2);
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.data[0].nom).toBe('Dubois');
+      expect(response.body.data[1].nom).toBe('Martin');
+    });
+
+    it('should return empty array for class with no students', async () => {
+      const emptyClassId = new mongoose.Types.ObjectId();
+
+      await Student.create({
+        nom: 'Martin',
+        prenom: 'Sophie',
+        classe: testClassId,
+        dateNaissance: '2010-03-20',
+        sexe: 'FEMME',
+      });
+
+      const response = await request(app)
+        .get(`/api/students?classe=${emptyClassId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(0);
+      expect(response.body.data).toHaveLength(0);
+    });
+
+    it('should return 400 for invalid class ID format', async () => {
+      const response = await request(app)
+        .get('/api/students?classe=invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
   });
 
   describe('GET /api/students/:id', () => {
