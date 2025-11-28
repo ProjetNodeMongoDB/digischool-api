@@ -1,6 +1,53 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - username
+ *         - email
+ *         - password
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated MongoDB ObjectId
+ *           example: 507f1f77bcf86cd799439011
+ *         username:
+ *           type: string
+ *           minLength: 3
+ *           maxLength: 30
+ *           description: Unique username (letters, numbers, hyphens, underscores only)
+ *           example: john_doe
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: Unique email address
+ *           example: john.doe@example.com
+ *         password:
+ *           type: string
+ *           minLength: 6
+ *           description: Hashed password (not returned in responses)
+ *           example: $2a$10$...
+ *         role:
+ *           type: string
+ *           enum: [admin, teacher, student]
+ *           default: student
+ *           description: User role
+ *           example: student
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Account creation timestamp
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Last update timestamp
+ */
+
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
