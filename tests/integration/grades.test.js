@@ -7,14 +7,13 @@ const Teacher = require('../../src/models/Teacher');
 const Class = require('../../src/models/Class');
 const Subject = require('../../src/models/Subject');
 const Trimester = require('../../src/models/Trimester');
-const connectDB = require('../../src/config/database');
 
 describe('Grade API', () => {
 	let studentId, classId, subjectId, teacherId, trimesterId;
 	let student2Id, subject2Id, class2Id, trimester2Id;
 
 	beforeAll(async () => {
-		await connectDB();
+		// Connection already handled by tests/setup.js
 
 		const teacher = await Teacher.create({
 			nom: 'Dupont',
@@ -83,13 +82,14 @@ describe('Grade API', () => {
 	});
 
 	afterAll(async () => {
+		// Cleanup test data
 		await Grade.deleteMany({});
 		await Student.deleteMany({});
 		await Teacher.deleteMany({});
 		await Class.deleteMany({});
 		await Subject.deleteMany({});
 		await Trimester.deleteMany({});
-		await mongoose.connection.close();
+		// Connection close handled by tests/setup.js
 	});
 
 	describe('POST /api/grades', () => {
