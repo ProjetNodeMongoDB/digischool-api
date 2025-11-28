@@ -144,7 +144,7 @@ describe('Teacher API', () => {
       expect(response.body.data[0].nom).toBe('Dupont');
     });
 
-    it('should return empty array when class has no teacher', async () => {
+    it('should return 500 when class does not exist (service throws, global error handler converts to 500)', async () => {
       const fakeClassId = new mongoose.Types.ObjectId();
 
       const response = await request(app)

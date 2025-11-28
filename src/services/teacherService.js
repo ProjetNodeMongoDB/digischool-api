@@ -16,7 +16,7 @@ class TeacherService {
   async getTeachersByClass(classId) {
     const classe = await Class.findById(classId).populate('prof');
     if (!classe) {
-      throw new Error('Class not found');
+      throw new Error(`Class not found with ID: ${classId}`);
     }
     return classe.prof ? [classe.prof] : [];
   }
