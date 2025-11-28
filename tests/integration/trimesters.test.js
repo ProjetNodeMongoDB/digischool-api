@@ -2,15 +2,34 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Trimester = require('../../src/models/Trimester');
-const connectDB = require('../../src/config/database');
+const User = require('../../src/models/User');
 
 describe('Trimester API', () => {
+  let authToken;
+  let userId;
+
   beforeAll(async () => {
-    await connectDB();
+    // Create a user and get auth token for protected routes
+    const registerResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        username: 'trimester-test-admin',
+        email: 'trimester-tests@example.com',
+        password: 'Test123456'
+      });
+
+    userId = registerResponse.body.data.user._id;
+    authToken = registerResponse.body.data.token;
+
+    // Update user role to admin for testing CRUD operations
+    const User = require('../../src/models/User');
+    await User.findByIdAndUpdate(userId, { role: 'admin' });
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    // Clean up after tests
+    await Trimester.deleteMany({});
+    await User.deleteMany({});
   });
 
   beforeEach(async () => {
@@ -26,6 +45,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .post('/api/trimesters')
+        .set("Authorization", `Bearer ${authToken}`)
         .send(trimesterData)
         .expect('Content-Type', /json/)
         .expect(201);
@@ -38,6 +58,7 @@ describe('Trimester API', () => {
     it('should return 400 for missing required fields', async () => {
       const response = await request(app)
         .post('/api/trimesters')
+        .set("Authorization", `Bearer ${authToken}`)
         .send({})
         .expect(400);
 
@@ -53,6 +74,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .post('/api/trimesters')
+        .set("Authorization", `Bearer ${authToken}`)
         .send(trimesterData)
         .expect(400);
 
@@ -67,6 +89,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .post('/api/trimesters')
+        .set("Authorization", `Bearer ${authToken}`)
         .send(trimesterData)
         .expect(400);
 
@@ -89,6 +112,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .get('/api/trimesters')
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -99,6 +123,7 @@ describe('Trimester API', () => {
     it('should return empty array when no trimesters exist', async () => {
       const response = await request(app)
         .get('/api/trimesters')
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -116,6 +141,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .get(`/api/trimesters/${trimester._id}`)
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -125,6 +151,7 @@ describe('Trimester API', () => {
     it('should return 400 for invalid ID format', async () => {
       const response = await request(app)
         .get('/api/trimesters/invalid-id')
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);
@@ -134,6 +161,7 @@ describe('Trimester API', () => {
       const fakeId = new mongoose.Types.ObjectId();
       const response = await request(app)
         .get(`/api/trimesters/${fakeId}`)
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(500);
 
       expect(response.body.success).toBe(false);
@@ -154,6 +182,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .put(`/api/trimesters/${trimester._id}`)
+        .set("Authorization", `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
 
@@ -173,6 +202,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .put(`/api/trimesters/${trimester._id}`)
+        .set("Authorization", `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
@@ -189,6 +219,7 @@ describe('Trimester API', () => {
 
       const response = await request(app)
         .delete(`/api/trimesters/${trimester._id}`)
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -201,6 +232,7 @@ describe('Trimester API', () => {
     it('should return 400 for invalid ID format', async () => {
       const response = await request(app)
         .delete('/api/trimesters/invalid-id')
+        .set("Authorization", `Bearer ${authToken}`)
         .expect(400);
 
       expect(response.body.success).toBe(false);

@@ -3,7 +3,7 @@ const router = express.Router();
 const classController = require('../controllers/classController');
 const { body, param } = require('express-validator');
 const { validate } = require('../middlewares/validation');
-// const { protect } = require('../middlewares/authMiddleware'); // Add after Phase 4
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 // Validation rules
 const classValidationRules = [
@@ -20,11 +20,11 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid class ID'),
 ];
 
-// Routes (temporarily without auth - add protect middleware in Phase 4)
-router.get('/', classController.getAll);
-router.get('/:id', idValidation, validate, classController.getById);
-router.post('/', classValidationRules, validate, classController.create);
-router.put('/:id', idValidation, classValidationRules, validate, classController.update);
-router.delete('/:id', idValidation, validate, classController.delete);
+// Routes with authentication
+router.get('/', protect, classController.getAll);
+router.get('/:id', protect, idValidation, validate, classController.getById);
+router.post('/', protect, authorize('admin', 'teacher'), classValidationRules, validate, classController.create);
+router.put('/:id', protect, authorize('admin', 'teacher'), idValidation, classValidationRules, validate, classController.update);
+router.delete('/:id', protect, authorize('admin'), idValidation, validate, classController.delete);
 
 module.exports = router;

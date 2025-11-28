@@ -3,6 +3,7 @@ const router = express.Router();
 const teacherController = require('../controllers/teacherController');
 const { body, param } = require('express-validator');
 const { validate } = require('../middlewares/validation');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 // Validation rules
 const teacherValidationRules = [
@@ -36,11 +37,11 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid teacher ID'),
 ];
 
-// Routes
-router.get('/', teacherController.getAll);
-router.get('/:id', idValidation, validate, teacherController.getById);
-router.post('/', teacherValidationRules, validate, teacherController.create);
-router.put('/:id', idValidation, teacherValidationRules, validate, teacherController.update);
-router.delete('/:id', idValidation, validate, teacherController.delete);
+// Routes with authentication
+router.get('/', protect, teacherController.getAll);
+router.get('/:id', protect, idValidation, validate, teacherController.getById);
+router.post('/', protect, authorize('admin'), teacherValidationRules, validate, teacherController.create);
+router.put('/:id', protect, authorize('admin'), idValidation, teacherValidationRules, validate, teacherController.update);
+router.delete('/:id', protect, authorize('admin'), idValidation, validate, teacherController.delete);
 
 module.exports = router;

@@ -3,7 +3,7 @@ const router = express.Router();
 const gradeController = require('../controllers/gradeController');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validation');
-// const { protect } = require('../middlewares/authMiddleware'); // Add after Phase 4
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 // Validation rules for creating/updating grades
 const gradeValidationRules = [
@@ -43,11 +43,11 @@ const filterValidation = [
   query('trimester').optional().isMongoId().withMessage('Invalid trimester ID')
 ];
 
-// Routes (temporarily without auth - add protect middleware in Phase 4)
-router.get('/', filterValidation, validate, gradeController.getAll);
-router.get('/:id', idValidation, validate, gradeController.getById);
-router.post('/', gradeValidationRules, validate, gradeController.create);
-router.put('/:id', idValidation, gradeValidationRules, validate, gradeController.update);
-router.delete('/:id', idValidation, validate, gradeController.delete);
+// Routes with authentication
+router.get('/', protect, filterValidation, validate, gradeController.getAll);
+router.get('/:id', protect, idValidation, validate, gradeController.getById);
+router.post('/', protect, authorize('admin', 'teacher'), gradeValidationRules, validate, gradeController.create);
+router.put('/:id', protect, authorize('admin', 'teacher'), idValidation, gradeValidationRules, validate, gradeController.update);
+router.delete('/:id', protect, authorize('admin'), idValidation, validate, gradeController.delete);
 
 module.exports = router;

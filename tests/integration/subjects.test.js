@@ -2,15 +2,34 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Subject = require('../../src/models/Subject');
-const connectDB = require('../../src/config/database');
+const User = require('../../src/models/User');
 
 describe('Subject API', () => {
+	let authToken;
+	let userId;
+
 	beforeAll(async () => {
-		await connectDB();
+		// Create a user and get auth token for protected routes
+		const registerResponse = await request(app)
+			.post('/api/auth/register')
+			.send({
+				username: 'subject-test-admin',
+				email: 'subject-tests@example.com',
+				password: 'Test123456'
+			});
+
+		userId = registerResponse.body.data.user._id;
+		authToken = registerResponse.body.data.token;
+
+		// Update user role to admin for testing CRUD operations
+		const User = require('../../src/models/User');
+		await User.findByIdAndUpdate(userId, { role: 'admin' });
 	});
 
 	afterAll(async () => {
-		await mongoose.connection.close();
+		// Clean up after tests
+		await Subject.deleteMany({});
+		await User.deleteMany({});
 	});
 
 	beforeEach(async () => {
@@ -24,7 +43,8 @@ describe('Subject API', () => {
 			};
 
 			const response = await request(app)
-				.post('/api/subjects')
+				.post('/api/subjects').set("Authorization", `Bearer ${authToken}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.send(subjectData)
 				.expect('Content-Type', /json/)
 				.expect(201);
@@ -36,7 +56,7 @@ describe('Subject API', () => {
 
 		it('should return 400 for missing required fields', async () => {
 			const response = await request(app)
-				.post('/api/subjects')
+				.post('/api/subjects').set("Authorization", `Bearer ${authToken}`)
 				.send({})
 				.expect(400);
 
@@ -52,7 +72,7 @@ describe('Subject API', () => {
 			};
 
 			const response = await request(app)
-				.post('/api/subjects')
+				.post('/api/subjects').set("Authorization", `Bearer ${authToken}`)
 				.send(subjectData);
 
 			expect(response.body.success).toBe(false);
@@ -65,7 +85,7 @@ describe('Subject API', () => {
 			};
 
 			const response = await request(app)
-				.post('/api/subjects')
+				.post('/api/subjects').set("Authorization", `Bearer ${authToken}`)
 				.send(subjectData)
 				.expect(400);
 
@@ -81,7 +101,7 @@ describe('Subject API', () => {
 				{ nom: 'Chemistry' },
 			]);
 
-			const response = await request(app).get('/api/subjects').expect(200);
+			const response = await request(app).get('/api/subjects').set("Authorization", `Bearer ${authToken}`).expect(200);
 
 			expect(response.body.success).toBe(true);
 			expect(response.body.count).toBe(3);
@@ -89,7 +109,7 @@ describe('Subject API', () => {
 		});
 
 		it('should return empty array when no subjects exist', async () => {
-			const response = await request(app).get('/api/subjects').expect(200);
+			const response = await request(app).get('/api/subjects').set("Authorization", `Bearer ${authToken}`).expect(200);
 
 			expect(response.body.success).toBe(true);
 			expect(response.body.count).toBe(0);
@@ -103,7 +123,7 @@ describe('Subject API', () => {
 				{ nom: 'Biology' },
 			]);
 
-			const response = await request(app).get('/api/subjects').expect(200);
+			const response = await request(app).get('/api/subjects').set("Authorization", `Bearer ${authToken}`).expect(200);
 
 			expect(response.body.data[0].nom).toBe('Biology');
 			expect(response.body.data[1].nom).toBe('Chemistry');
@@ -119,6 +139,7 @@ describe('Subject API', () => {
 
 			const response = await request(app)
 				.get(`/api/subjects/${subject._id}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -128,6 +149,7 @@ describe('Subject API', () => {
 		it('should return 400 for invalid ID format', async () => {
 			const response = await request(app)
 				.get('/api/subjects/invalid-id')
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(400);
 
 			expect(response.body.success).toBe(false);
@@ -137,6 +159,7 @@ describe('Subject API', () => {
 			const fakeId = new mongoose.Types.ObjectId();
 			const response = await request(app)
 				.get(`/api/subjects/${fakeId}`)
+				.set('Authorization', `Bearer ${authToken}`)
 				.expect(500);
 		});
 	});
@@ -153,6 +176,7 @@ describe('Subject API', () => {
 
 			const response = await request(app)
 				.put(`/api/subjects/${subject._id}`)
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(200);
 
@@ -167,6 +191,7 @@ describe('Subject API', () => {
 
 			const response = await request(app)
 				.put('/api/subjects/invalid-id')
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(400);
 
@@ -181,6 +206,7 @@ describe('Subject API', () => {
 
 			const response = await request(app)
 				.put(`/api/subjects/${fakeId}`)
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(500);
 		});
@@ -196,6 +222,7 @@ describe('Subject API', () => {
 
 			const response = await request(app)
 				.put(`/api/subjects/${subject._id}`)
+				.set("Authorization", `Bearer ${authToken}`)
 				.send(updateData)
 				.expect(400);
 
@@ -211,6 +238,7 @@ describe('Subject API', () => {
 
 			const response = await request(app)
 				.delete(`/api/subjects/${subject._id}`)
+				.set("Authorization", `Bearer ${authToken}`)
 				.expect(200);
 
 			expect(response.body.success).toBe(true);
@@ -223,6 +251,7 @@ describe('Subject API', () => {
 		it('should return 400 for invalid ID format', async () => {
 			const response = await request(app)
 				.delete('/api/subjects/invalid-id')
+				.set("Authorization", `Bearer ${authToken}`)
 				.expect(400);
 
 			expect(response.body.success).toBe(false);
@@ -232,6 +261,7 @@ describe('Subject API', () => {
 			const fakeId = new mongoose.Types.ObjectId();
 			const response = await request(app)
 				.delete(`/api/subjects/${fakeId}`)
+				.set("Authorization", `Bearer ${authToken}`)
 				.expect(500);
 		});
 	});
