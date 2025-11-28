@@ -6,6 +6,17 @@ class StudentController {
   // @access  Private
   async getAll(req, res, next) {
     try {
+      // Check for class filter query param
+      if (req.query.classe) {
+        const students = await studentService.getStudentsByClass(req.query.classe);
+        return res.status(200).json({
+          success: true,
+          count: students.length,
+          data: students,
+        });
+      }
+
+      // Default: return all students
       const students = await studentService.getAllStudents();
       res.status(200).json({
         success: true,

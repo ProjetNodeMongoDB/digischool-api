@@ -46,6 +46,17 @@ class StudentService {
     }
     return student;
   }
+
+  /**
+   * Get students in a specific class
+   * @param {string} classId - Class ObjectId
+   * @returns {Promise<Array>} Students in this class, sorted by name
+   */
+  async getStudentsByClass(classId) {
+    return await Student.find({ classe: classId })
+      .populate('classe', 'nom')
+      .sort({ nom: 1, prenom: 1 });
+  }
 }
 
 module.exports = new StudentService();

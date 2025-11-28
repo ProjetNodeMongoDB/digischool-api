@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
-const { body, param } = require('express-validator');
+const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validation');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
@@ -263,7 +263,7 @@ const idValidation = [
  */
 
 // Routes with authentication
-router.get('/', protect, studentController.getAll);
+router.get('/', protect, filterValidation, validate, studentController.getAll);
 router.get('/:id', protect, idValidation, validate, studentController.getById);
 router.post('/', protect, authorize('admin'), studentValidationRules, validate, studentController.create);
 router.put('/:id', protect, authorize('admin'), idValidation, studentValidationRules, validate, studentController.update);
