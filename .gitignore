@@ -3,6 +3,12 @@ node_modules/
 digischools.sql
 
 *.pdf
+*.html
+*.xml
+*.css
+*json
+coverage/*
+*.tmp
 
 *.log
 *.md
