@@ -1,12 +1,21 @@
 const teacherService = require('../services/teacherService');
 
 class TeacherController {
-  // @desc    Get all teachers
+  // @desc    Get all teachers or filter by class
   // @route   GET /api/teachers
+  // @route   GET /api/teachers?classe=:classId
   // @access  Private
   async getAll(req, res, next) {
     try {
-      const teachers = await teacherService.getAllTeachers();
+      let teachers;
+
+      // Check if classe query parameter is provided
+      if (req.query.classe) {
+        teachers = await teacherService.getTeachersByClass(req.query.classe);
+      } else {
+        teachers = await teacherService.getAllTeachers();
+      }
+
       res.status(200).json({
         success: true,
         count: teachers.length,
