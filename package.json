@@ -10,8 +10,13 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "test": "jest --verbose --runInBand",
+    "test:unit": "jest --config=jest.config.unit.js",
+    "test:unit:watch": "jest --config=jest.config.unit.js --watch",
+    "test:unit:coverage": "jest --config=jest.config.unit.js --coverage",
+    "test:integration": "jest --testPathPattern=tests/.*\\.test\\.js --testPathIgnorePatterns=tests/unit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:all": "npm run test:unit && npm run test:integration",
     "lint": "eslint src/**/*.js"
   },
   "dependencies": {
