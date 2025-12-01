@@ -199,6 +199,165 @@ describe('Student API', () => {
       expect(response.body.count).toBe(0);
       expect(response.body.data).toHaveLength(0);
     });
+
+    it('should get students by class ID', async () => {
+      const Class = require('../../src/models/Class');
+      const Teacher = require('../../src/models/Teacher');
+
+      // Create a real teacher and class for the test
+      const teacher = await Teacher.create({
+        nom: 'Dupont',
+        prenom: 'Jean',
+        sexe: 'HOMME',
+        dateNaissance: '1980-05-15',
+        lieuNaissance: 'Paris',
+        telephone: '0123456789'
+      });
+
+      const realClass = await Class.create({
+        nom: 'Test Class for Students',
+        prof: teacher._id
+      });
+
+      const anotherClassId = new mongoose.Types.ObjectId();
+
+      await Student.create([
+        {
+          nom: 'Martin',
+          prenom: 'Sophie',
+          classe: realClass._id,
+          dateNaissance: '2010-03-20',
+          sexe: 'FEMME',
+        },
+        {
+          nom: 'Dubois',
+          prenom: 'Pierre',
+          classe: realClass._id,
+          dateNaissance: '2011-05-15',
+          sexe: 'HOMME',
+        },
+        {
+          nom: 'Garcia',
+          prenom: 'Juan',
+          classe: anotherClassId,
+          dateNaissance: '2010-08-10',
+          sexe: 'HOMME',
+        },
+      ]);
+
+      const response = await request(app)
+        .get(`/api/students?classe=${realClass._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(2);
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.data[0].nom).toBe('Dubois');
+      expect(response.body.data[1].nom).toBe('Martin');
+
+      // Cleanup
+      await Class.findByIdAndDelete(realClass._id);
+      await Teacher.findByIdAndDelete(teacher._id);
+    });
+
+    it('should return students sorted by nom and prenom', async () => {
+      // Create students with same last name but different first names
+      await Student.create([
+        {
+          nom: 'Dupont',
+          prenom: 'Zoe',
+          classe: testClassId,
+          dateNaissance: '2011-01-15',
+          sexe: 'FEMME',
+        },
+        {
+          nom: 'Dupont',
+          prenom: 'Alice',
+          classe: testClassId,
+          dateNaissance: '2011-02-20',
+          sexe: 'FEMME',
+        },
+        {
+          nom: 'Bernard',
+          prenom: 'Marc',
+          classe: testClassId,
+          dateNaissance: '2011-03-10',
+          sexe: 'HOMME',
+        },
+      ]);
+
+      const response = await request(app)
+        .get('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(3);
+      // Verify sorting: Bernard Marc, then Dupont Alice, then Dupont Zoe
+      expect(response.body.data[0].nom).toBe('Bernard');
+      expect(response.body.data[0].prenom).toBe('Marc');
+      expect(response.body.data[1].nom).toBe('Dupont');
+      expect(response.body.data[1].prenom).toBe('Alice');
+      expect(response.body.data[2].nom).toBe('Dupont');
+      expect(response.body.data[2].prenom).toBe('Zoe');
+    });
+
+    it('should return 404 for non-existent class', async () => {
+      const fakeClassId = new mongoose.Types.ObjectId();
+
+      const response = await request(app)
+        .get(`/api/students?classe=${fakeClassId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Class not found');
+    });
+
+    it('should return empty array for class with no students', async () => {
+      const Class = require('../../src/models/Class');
+      const Teacher = require('../../src/models/Teacher');
+
+      // Create a real teacher
+      const teacher = await Teacher.create({
+        nom: 'Dupont',
+        prenom: 'Jean',
+        sexe: 'HOMME',
+        dateNaissance: '1980-05-15',
+        lieuNaissance: 'Paris',
+        telephone: '0123456789'
+      });
+
+      // Create a real class with no students
+      const emptyClass = await Class.create({
+        nom: 'Empty Class',
+        prof: teacher._id
+      });
+
+      const response = await request(app)
+        .get(`/api/students?classe=${emptyClass._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(0);
+      expect(response.body.data).toHaveLength(0);
+
+      // Cleanup
+      await Class.findByIdAndDelete(emptyClass._id);
+      await Teacher.findByIdAndDelete(teacher._id);
+    });
+
+    it('should return 400 for invalid class ID format', async () => {
+      const response = await request(app)
+        .get('/api/students?classe=invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+    });
   });
 
   describe('GET /api/students/:id', () => {
