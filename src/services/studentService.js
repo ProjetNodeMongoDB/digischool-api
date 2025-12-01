@@ -4,7 +4,7 @@ class StudentService {
   // Get all students with class population
   async getAllStudents() {
     return await Student.find()
-      .sort({ nom: 1 });
+      .sort({ nom: 1, prenom: 1 });
   }
 
   // Get student by ID with class population
@@ -51,11 +51,32 @@ class StudentService {
    * Get students in a specific class
    * @param {string} classId - Class ObjectId
    * @returns {Promise<Array>} Students in this class, sorted by name
+   * @throws {Error} If class doesn't exist
    */
   async getStudentsByClass(classId) {
-    return await Student.find({ classe: classId })
-      .populate('classe', 'nom')
+    const Class = require('../models/Class');
+
+    // Verify class exists first
+    const classExists = await Class.findById(classId);
+    if (!classExists) {
+      const error = new Error('Class not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Find students in this class with population
+    const students = await Student.find({ classe: classId })
+      .populate({
+        path: 'classe',
+        select: 'nom',
+        populate: {
+          path: 'prof',
+          select: 'nom prenom'
+        }
+      })
       .sort({ nom: 1, prenom: 1 });
+
+    return students;
   }
 }
 
