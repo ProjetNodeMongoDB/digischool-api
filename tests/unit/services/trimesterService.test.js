@@ -1,3 +1,34 @@
+/**
+ * Unit Tests for Trimester Service
+ *
+ * Tests academic trimester management for French school system organization.
+ * Handles academic period creation, scheduling, and temporal data validation.
+ *
+ * Academic Period Management:
+ * - Trimester creation with proper date validation
+ * - Academic year organization (TRIM01, TRIM02, TRIM03)
+ * - Chronological sorting by trimester dates
+ * - Period modification and deletion operations
+ *
+ * Temporal Validation:
+ * - Date format validation for trimester periods
+ * - Chronological order enforcement
+ * - Academic calendar integration
+ * - Proper date range handling for grade assignments
+ *
+ * Mock Strategy:
+ * - Trimester model isolated for unit testing
+ * - Date validation simulation
+ * - Database operation mocking
+ * - Error scenario testing for invalid dates
+ *
+ * Academic Calendar Rules:
+ * - Three trimesters per academic year (French system)
+ * - Proper chronological ordering by date
+ * - Trimester names follow TRIM01, TRIM02, TRIM03 convention
+ * - Grade assignments tied to specific trimester periods
+ */
+
 const trimesterService = require('../../../src/services/trimesterService');
 const Trimester = require('../../../src/models/Trimester');
 const { trimesters, mockIds, edgeCases } = require('../mocks/fixtures');

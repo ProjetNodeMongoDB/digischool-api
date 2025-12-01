@@ -1,3 +1,34 @@
+/**
+ * Unit Tests for Subject Service
+ *
+ * Tests academic subject management with focus on curriculum organization and
+ * data integrity. Covers CRUD operations for school subjects with validation.
+ *
+ * Academic Subject Management:
+ * - Subject creation with proper naming conventions
+ * - Subject name uniqueness enforcement
+ * - Alphabetical sorting for curriculum organization
+ * - Subject retrieval and modification operations
+ *
+ * Validation Testing:
+ * - Subject name format validation (typically UPPERCASE)
+ * - Length constraints for subject names
+ * - Duplicate prevention across the academic system
+ * - Proper error handling for invalid subject data
+ *
+ * Mock Strategy:
+ * - Subject model isolated through jest.mock()
+ * - Database operation simulation
+ * - Error scenario testing for validation failures
+ * - Edge case handling for boundary conditions
+ *
+ * Curriculum Rules:
+ * - Subject names must be unique within the system
+ * - Proper alphabetical ordering for academic organization
+ * - Consistent naming conventions for administrative clarity
+ * - No soft deletion (subjects are permanently removed when deleted)
+ */
+
 const subjectService = require('../../../src/services/subjectService');
 const Subject = require('../../../src/models/Subject');
 const { subjects, mockIds, edgeCases } = require('../mocks/fixtures');

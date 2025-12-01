@@ -1,3 +1,34 @@
+/**
+ * Unit Tests for Class Service
+ *
+ * Tests class management operations with teacher relationship handling and validation.
+ * Focuses on the critical teacher-class assignment logic and population patterns.
+ *
+ * Core Functionality Tests:
+ * - Class CRUD operations with teacher population
+ * - Teacher assignment validation and existence checks
+ * - Class name uniqueness enforcement
+ * - Proper sorting and data retrieval
+ *
+ * Relationship Testing:
+ * - Teacher-Class one-to-many relationship validation
+ * - Population of teacher data in class responses
+ * - Teacher existence validation before class creation/update
+ * - Proper handling of teacher reference updates
+ *
+ * Mock Architecture:
+ * - Both Class and Teacher models mocked for isolation
+ * - Population chains simulated (.findById().populate())
+ * - Teacher existence checks mocked for validation scenarios
+ * - Database error simulation for robustness testing
+ *
+ * Business Logic:
+ * - Classes must have assigned teachers (prof field required)
+ * - Teacher must exist before class assignment
+ * - Class names must be unique within the system
+ * - Proper alphabetical sorting by class name
+ */
+
 const classService = require('../../../src/services/classService');
 const Class = require('../../../src/models/Class');
 const Teacher = require('../../../src/models/Teacher');

@@ -1,3 +1,29 @@
+/**
+ * Unit Tests for Student Service
+ *
+ * Comprehensive test suite for student management operations including CRUD functionality,
+ * class assignment validation, and relationship handling with populated data.
+ *
+ * Key Test Areas:
+ * - Student retrieval with class population and sorting
+ * - Student creation with class reference validation
+ * - Update operations with data integrity checks
+ * - Deletion with proper error handling
+ * - Class-student relationship validation
+ *
+ * Mock Patterns:
+ * - Student model mocked for isolated unit testing
+ * - Population simulation for class relationships
+ * - Database error scenarios including connection timeouts
+ * - Validation error simulation for business rules
+ *
+ * Business Logic Tested:
+ * - Students must belong to valid classes
+ * - Proper sorting by nom and prenom
+ * - Age validation through birth date checks
+ * - Address field optionality
+ */
+
 const studentService = require('../../../src/services/studentService');
 const Student = require('../../../src/models/Student');
 const { students, mockIds, edgeCases } = require('../mocks/fixtures');

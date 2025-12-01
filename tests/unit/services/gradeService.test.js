@@ -1,3 +1,37 @@
+/**
+ * Unit Tests for Grade Service
+ *
+ * Most complex service test suite handling grade management with five-model relationships.
+ * Tests critical business logic for academic grade recording, validation, and retrieval
+ * with comprehensive relational data population.
+ *
+ * Complex Relationship Testing:
+ * - Grade entity relates to Student, Class, Subject, Teacher, Trimester
+ * - Cross-reference validation (student must be in specified class)
+ * - Complete population chains for all related entities
+ * - Filtering capabilities by any related entity type
+ *
+ * Business Logic Validation:
+ * - Note (grade score) must be between 0-20 (French academic system)
+ * - Coefficient validation for weighted calculations
+ * - Student-class enrollment consistency checks
+ * - Teacher-subject-class assignment validation
+ * - Trimester period validation
+ *
+ * Mock Complexity:
+ * - Six models mocked (Grade + 5 related entities)
+ * - Population chains for nested data retrieval
+ * - Cross-reference validation simulation
+ * - Complex query filtering simulation
+ * - Validation error scenarios for all relationships
+ *
+ * Critical Academic Rules:
+ * - Grades are immutable once recorded (update restrictions)
+ * - Student must be enrolled in the class for the grade
+ * - Teacher must be assigned to teach the subject
+ * - Grades are tied to specific trimesters (academic periods)
+ */
+
 const gradeService = require('../../../src/services/gradeService');
 const Grade = require('../../../src/models/Grade');
 const Student = require('../../../src/models/Student');

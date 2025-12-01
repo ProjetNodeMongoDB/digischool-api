@@ -1,3 +1,41 @@
+/**
+ * Unit Tests for Authentication Service
+ *
+ * Critical security-focused test suite covering user registration, login, JWT token management,
+ * and role-based access control. Ensures proper password hashing, token validation, and
+ * authentication flow security.
+ *
+ * Security Test Coverage:
+ * - Password hashing validation (bcrypt)
+ * - JWT token generation and verification
+ * - User duplicate prevention (email/username)
+ * - Role assignment and validation
+ * - Token expiration handling
+ * - User session management
+ *
+ * Authentication Flow Testing:
+ * - Registration with email/username uniqueness
+ * - Login credential validation
+ * - Token-based authentication
+ * - User role assignment (student default, admin promotion)
+ * - Password comparison and security
+ *
+ * Mock Strategy:
+ * - User model completely isolated
+ * - JWT library mocked for predictable token testing
+ * - Password hashing simulation
+ * - Database query simulation with fixtures
+ *
+ * Critical Business Rules:
+ * - Default role is 'student' for new registrations
+ * - Email and username must be unique
+ * - Passwords must be securely hashed
+ * - JWT tokens contain user identification data
+ *
+ * @author DigiSchool Backend Team
+ * @since 2024-12-01
+ */
+
 const authService = require('../../../src/services/authService');
 const User = require('../../../src/models/User');
 const jwt = require('jsonwebtoken');
@@ -150,6 +188,12 @@ describe('AuthService', () => {
       const user = {
         ...users.valid,
         comparePassword: jest.fn().mockResolvedValue(true),
+        toSafeObject: jest.fn(() => ({
+          _id: users.valid._id,
+          username: users.valid.username,
+          email: users.valid.email,
+          role: users.valid.role,
+        })),
       };
 
       User.findOne.mockReturnValue({
@@ -259,8 +303,19 @@ describe('AuthService', () => {
         role: 'student',
       };
 
+      // Ensure the user mock has toSafeObject method
+      const mockUser = {
+        ...users.valid,
+        toSafeObject: jest.fn(() => ({
+          _id: mockIds.user1,
+          username: 'johndoe',
+          email: 'john@example.com',
+          role: 'student',
+        })),
+      };
+
       jwt.verify.mockReturnValue(decoded);
-      User.findById.mockResolvedValue(users.valid);
+      User.findById.mockResolvedValue(mockUser);
 
       const result = await authService.verifyToken(token);
 
@@ -323,7 +378,18 @@ describe('AuthService', () => {
 
   describe('getUserById', () => {
     it('should return user when found', async () => {
-      User.findById.mockResolvedValue(users.valid);
+      // Ensure the user mock has toSafeObject method
+      const mockUser = {
+        ...users.valid,
+        toSafeObject: jest.fn(() => ({
+          _id: mockIds.user1,
+          username: users.valid.username,
+          email: users.valid.email,
+          role: users.valid.role,
+        })),
+      };
+
+      User.findById.mockResolvedValue(mockUser);
 
       const result = await authService.getUserById(mockIds.user1);
 
