@@ -50,5 +50,13 @@ module.exports = {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
-  bail: 0
+  bail: 0,
+  coverageReporters: [
+    'text',
+    'text-summary',
+    'lcov',
+    'html',
+    'json'
+  ],
+  coverageDirectory: '<rootDir>/coverage'
 };
