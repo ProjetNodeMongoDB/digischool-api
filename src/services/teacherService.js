@@ -1,9 +1,26 @@
 const Teacher = require('../models/Teacher');
+const Class = require('../models/Class');
 
 class TeacherService {
   // Get all teachers
   async getAllTeachers() {
     return await Teacher.find().sort({ nom: 1 });
+  }
+
+  /**
+   * Get teachers by class ID
+   * This performs a reverse lookup since Teacher model doesn't have classe field
+   * @param {string} classId - MongoDB ObjectId of the class
+   * @returns {Promise<Array>} Array containing the teacher assigned to the class
+   */
+  async getTeachersByClass(classId) {
+    const classe = await Class.findById(classId).populate('prof');
+    if (!classe) {
+      const error = new Error('Class not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    return classe.prof ? [classe.prof] : [];
   }
 
   // Get teacher by ID

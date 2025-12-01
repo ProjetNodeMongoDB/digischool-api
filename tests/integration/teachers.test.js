@@ -2,6 +2,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Teacher = require('../../src/models/Teacher');
+const Class = require('../../src/models/Class');
 const User = require('../../src/models/User');
 
 describe('Teacher API', () => {
@@ -29,11 +30,13 @@ describe('Teacher API', () => {
   afterAll(async () => {
     // Clean up after tests
     await Teacher.deleteMany({});
+    await Class.deleteMany({});
     await User.deleteMany({});
   });
 
   beforeEach(async () => {
     await Teacher.deleteMany({});
+    await Class.deleteMany({});
   });
 
   describe('POST /api/teachers', () => {
@@ -112,6 +115,55 @@ describe('Teacher API', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.count).toBe(2);
       expect(response.body.data).toHaveLength(2);
+    });
+
+    it('should get teacher by class ID', async () => {
+      // Create a teacher
+      const teacher = await Teacher.create({
+        nom: 'Dupont',
+        prenom: 'Jean',
+        dateNaissance: '1980-05-15',
+        sexe: 'HOMME',
+      });
+
+      // Create a class with this teacher
+      const classe = await Class.create({
+        nom: 'CM1-A',
+        prof: teacher._id,
+      });
+
+      const response = await request(app)
+        .get(`/api/teachers?classe=${classe._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(1);
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.data[0]._id.toString()).toBe(teacher._id.toString());
+      expect(response.body.data[0].nom).toBe('Dupont');
+    });
+
+    it('should return 404 for non-existent class', async () => {
+      const fakeClassId = new mongoose.Types.ObjectId();
+
+      const response = await request(app)
+        .get(`/api/teachers?classe=${fakeClassId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Class not found');
+    });
+
+    it('should return 400 for invalid class ID format', async () => {
+      const response = await request(app)
+        .get('/api/teachers?classe=invalid-id')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
     });
   });
 

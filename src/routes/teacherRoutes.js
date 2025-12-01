@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const teacherController = require('../controllers/teacherController');
-const { body, param } = require('express-validator');
+const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validation');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
@@ -44,15 +44,28 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid teacher ID'),
 ];
 
+const classeQueryValidation = [
+  query('classe')
+    .optional()
+    .isMongoId().withMessage('Invalid class ID'),
+];
+
 /**
  * @swagger
  * /api/teachers:
  *   get:
- *     summary: Get all teachers
+ *     summary: Get all teachers or filter by class
  *     tags: [Teachers]
+ *     parameters:
+ *       - in: query
+ *         name: classe
+ *         schema:
+ *           type: string
+ *         description: Optional MongoDB ObjectId of the class to filter teachers
+ *         example: 507f1f77bcf86cd799439011
  *     responses:
  *       200:
- *         description: List of all teachers
+ *         description: List of all teachers or teachers assigned to a specific class
  *         content:
  *           application/json:
  *             schema:
@@ -68,6 +81,10 @@ const idValidation = [
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Teacher'
+ *       400:
+ *         description: Invalid class ID format
+ *       404:
+ *         description: Class not found
  *       500:
  *         description: Server error
  *
@@ -251,7 +268,7 @@ const idValidation = [
  */
 
 // Routes with authentication
-router.get('/', protect, teacherController.getAll);
+router.get('/', protect, classeQueryValidation, validate, teacherController.getAll);
 router.get('/:id', protect, idValidation, validate, teacherController.getById);
 router.post('/', protect, authorize('admin'), teacherValidationRules, validate, teacherController.create);
 router.put('/:id', protect, authorize('admin'), idValidation, teacherValidationRules, validate, teacherController.update);
