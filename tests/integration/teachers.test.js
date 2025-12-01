@@ -144,15 +144,16 @@ describe('Teacher API', () => {
       expect(response.body.data[0].nom).toBe('Dupont');
     });
 
-    it('should return 500 when class does not exist (service throws, global error handler converts to 500)', async () => {
+    it('should return 404 for non-existent class', async () => {
       const fakeClassId = new mongoose.Types.ObjectId();
 
       const response = await request(app)
         .get(`/api/teachers?classe=${fakeClassId}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .expect(500);
+        .expect(404);
 
       expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Class not found');
     });
 
     it('should return 400 for invalid class ID format', async () => {
