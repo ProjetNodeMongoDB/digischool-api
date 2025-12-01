@@ -6,7 +6,7 @@ digischools.sql
 *.pdf
 *.html
 *.xml
-
+coverage/*.json
 test-results.json
 *.tmp.json
 *.css
