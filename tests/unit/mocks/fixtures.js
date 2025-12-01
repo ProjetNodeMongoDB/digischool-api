@@ -87,6 +87,24 @@ const invalidStudentInput = {
     classe: 'invalid-id-format',
 };
 
+const validStudentWithPopulate = {
+  _id: mockIds.student1,
+  nom: 'Leroy',
+  prenom: 'Thomas',
+  sexe: 'HOMME',
+  dateNaissance: new Date('2010-03-20'),
+  classe: {
+    _id: mockIds.class1,
+    nom: 'CM1',
+  },
+  adresse: '456 Avenue Victor Hugo, 75016 Paris',
+};
+
+const invalidStudentInput = {
+  nom: 'Test',
+  classe: 'invalid-id-format',
+};
+
 // Class fixtures
 const validClass = {
     _id: mockIds.class1,
@@ -123,6 +141,21 @@ const duplicateClassInput = {
     prof: mockIds.teacher2,
 };
 
+const validClassInput = {
+  nom: 'CM2-B',
+  prof: mockIds.teacher2,
+};
+
+const invalidClassInput = {
+  nom: '',
+  prof: 'invalid-id-format',
+};
+
+const duplicateClassInput = {
+  nom: 'CM1',
+  prof: mockIds.teacher2,
+};
+
 // Subject fixtures
 const validSubject = {
     _id: mockIds.subject1,
@@ -142,93 +175,93 @@ const validTrimester = {
 
 // Grade fixtures
 const validGrade = {
-    _id: mockIds.grade1,
-    ideleve: mockIds.student1,
-    idclasse: mockIds.class1,
-    idmatiere: mockIds.subject1,
-    idprof: mockIds.teacher1,
-    idtrimestre: mockIds.trimester1,
-    note: 15.5,
-    coefficient: 2,
-    createdAt: new Date(),
-    updatedAt: new Date()
+  _id: mockIds.grade1,
+  ideleve: mockIds.student1,
+  idclasse: mockIds.class1,
+  idmatiere: mockIds.subject1,
+  idprof: mockIds.teacher1,
+  idtrimestre: mockIds.trimester1,
+  note: 15.5,
+  coefficient: 2,
+  createdAt: new Date(),
+  updatedAt: new Date()
 };
 
 const validGradeWithPopulate = {
-    _id: mockIds.grade1,
-    ideleve: {
-        _id: mockIds.student1,
-        nom: 'Leroy',
-        prenom: 'Thomas',
-        dateNaissance: new Date('2010-03-20'),
-    },
-    idclasse: {
-        _id: mockIds.class1,
-        nom: 'CM1',
-    },
-    idmatiere: {
-        _id: mockIds.subject1,
-        nom: 'MATHEMATIQUES',
-    },
-    idprof: {
-        _id: mockIds.teacher1,
-        nom: 'Dupont',
-        prenom: 'Jean',
-    },
-    idtrimestre: {
-        _id: mockIds.trimester1,
-        nom: 'TRIM01',
-    },
-    note: 15.5,
-    coefficient: 2,
+  _id: mockIds.grade1,
+  ideleve: {
+    _id: mockIds.student1,
+    nom: 'Leroy',
+    prenom: 'Thomas',
+    dateNaissance: new Date('2010-03-20'),
+  },
+  idclasse: {
+    _id: mockIds.class1,
+    nom: 'CM1',
+  },
+  idmatiere: {
+    _id: mockIds.subject1,
+    nom: 'MATHEMATIQUES',
+  },
+  idprof: {
+    _id: mockIds.teacher1,
+    nom: 'Dupont',
+    prenom: 'Jean',
+  },
+  idtrimestre: {
+    _id: mockIds.trimester1,
+    nom: 'TRIM01',
+  },
+  note: 15.5,
+  coefficient: 2,
 };
 
 const validGradeInput = {
-    ideleve: mockIds.student1,
-    idclasse: mockIds.class1,
-    idmatiere: mockIds.subject1,
-    idprof: mockIds.teacher1,
-    idtrimestre: mockIds.trimester1,
-    note: 18,
-    coefficient: 1,
+  ideleve: mockIds.student1,
+  idclasse: mockIds.class1,
+  idmatiere: mockIds.subject1,
+  idprof: mockIds.teacher1,
+  idtrimestre: mockIds.trimester1,
+  note: 18,
+  coefficient: 1,
 };
 
 const invalidGradeNote = {
-    ideleve: mockIds.student1,
-    idclasse: mockIds.class1,
-    idmatiere: mockIds.subject1,
-    idprof: mockIds.teacher1,
-    idtrimestre: mockIds.trimester1,
-    note: 25,
-    coefficient: 1,
+  ideleve: mockIds.student1,
+  idclasse: mockIds.class1,
+  idmatiere: mockIds.subject1,
+  idprof: mockIds.teacher1,
+  idtrimestre: mockIds.trimester1,
+  note: 25,
+  coefficient: 1,
 };
 
 const invalidGradeReference = {
-    ideleve: 'invalid-id-format',
-    idclasse: mockIds.class1,
-    idmatiere: mockIds.subject1,
-    idprof: mockIds.teacher1,
-    idtrimestre: mockIds.trimester1,
-    note: 15,
-    coefficient: 1,
+  ideleve: 'invalid-id-format',
+  idclasse: mockIds.class1,
+  idmatiere: mockIds.subject1,
+  idprof: mockIds.teacher1,
+  idtrimestre: mockIds.trimester1,
+  note: 15,
+  coefficient: 1,
 };
 
 // User fixtures
 const validUser = {
+  _id: mockIds.user1,
+  username: 'jdupont',
+  email: 'jean.dupont@digischool.fr',
+  password: '$2a$10$hashedpassword',
+  role: 'teacher',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  comparePassword: jest.fn(),
+  toSafeObject: jest.fn(() => ({
     _id: mockIds.user1,
     username: 'jdupont',
     email: 'jean.dupont@digischool.fr',
-    password: '$2a$10$hashedpassword',
     role: 'teacher',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    comparePassword: jest.fn(),
-    toSafeObject: jest.fn(() => ({
-        _id: mockIds.user1,
-        username: 'jdupont',
-        email: 'jean.dupont@digischool.fr',
-        role: 'teacher',
-    })),
+  })),
 };
 
 const validUserInput = {
@@ -257,6 +290,25 @@ const duplicateUserInput = {
     password: 'password123',
 };
 
+const adminUserInput = {
+  username: 'admin',
+  email: 'admin@digischool.fr',
+  password: 'adminpass123',
+  role: 'admin',
+};
+
+const invalidUserInput = {
+  username: 'ab',
+  email: 'invalid-email',
+  password: '123',
+};
+
+const duplicateUserInput = {
+  username: 'jdupont',
+  email: 'jean.dupont@digischool.fr',
+  password: 'password123',
+};
+
 // Edge cases
 const edgeCases = {
     nullValue: null,
@@ -269,44 +321,44 @@ const edgeCases = {
 };
 
 module.exports = {
-    mockIds,
-    teachers: {
-        valid: validTeacher,
-        validInput: validTeacherInput,
-        invalid: invalidTeacherInput
-    },
-    students: {
-        valid: validStudent,
-        validInput: validStudentInput,
-        validWithPopulate: validStudentWithPopulate,
-        invalid: invalidStudentInput
-    },
-    classes: {
-        valid: validClass,
-        validWithPopulate: validClassWithPopulate,
-        validInput: validClassInput,
-        invalid: invalidClassInput,
-        duplicate: duplicateClassInput
-    },
-    subjects: {
-        valid: validSubject
-    },
-    trimesters: {
-        valid: validTrimester
-    },
-    grades: {
-        valid: validGrade,
-        validInput: validGradeInput,
-        validWithPopulate: validGradeWithPopulate,
-        invalidNote: invalidGradeNote,
-        invalidReference: invalidGradeReference
-    },
-    users: {
-        valid: validUser,
-        validInput: validUserInput,
-        adminInput: adminUserInput,
-        invalid: invalidUserInput,
-        duplicate: duplicateUserInput
-    },
-    edgeCases
+  mockIds,
+  teachers: {
+    valid: validTeacher,
+    validInput: validTeacherInput,
+    invalid: invalidTeacherInput
+  },
+  students: {
+    valid: validStudent,
+    validInput: validStudentInput,
+    validWithPopulate: validStudentWithPopulate,
+    invalid: invalidStudentInput
+  },
+  classes: {
+    valid: validClass,
+    validWithPopulate: validClassWithPopulate,
+    validInput: validClassInput,
+    invalid: invalidClassInput,
+    duplicate: duplicateClassInput
+  },
+  subjects: {
+    valid: validSubject
+  },
+  trimesters: {
+    valid: validTrimester
+  },
+  grades: {
+    valid: validGrade,
+    validInput: validGradeInput,
+    validWithPopulate: validGradeWithPopulate,
+    invalidNote: invalidGradeNote,
+    invalidReference: invalidGradeReference
+  },
+  users: {
+    valid: validUser,
+    validInput: validUserInput,
+    adminInput: adminUserInput,
+    invalid: invalidUserInput,
+    duplicate: duplicateUserInput
+  },
+  edgeCases
 };

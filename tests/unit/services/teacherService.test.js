@@ -1,6 +1,20 @@
 /**
  * Unit Tests for Teacher Service
- * Example demonstrating all mocking patterns
+ *
+ * Tests all CRUD operations for teacher management with comprehensive mocking patterns.
+ * Covers successful operations, error handling, validation scenarios, and edge cases.
+ *
+ * Test Categories:
+ * - Read Operations: getAllTeachers, getTeacherById, getTeachersByClass
+ * - Write Operations: createTeacher, updateTeacher, deleteTeacher
+ * - Error Scenarios: Database errors, validation failures, not found cases
+ * - Edge Cases: Invalid ObjectIds, null/undefined values, empty responses
+ *
+ * Mock Strategy:
+ * - Teacher model completely mocked using jest.mock()
+ * - Chainable query methods (.find().sort(), .findById().populate())
+ * - Error simulation for database connection issues
+ * - Fixtures provide consistent test data across all test cases
  */
 
 const teacherService = require('../../../src/services/teacherService');
