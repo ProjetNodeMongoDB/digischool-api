@@ -47,6 +47,11 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid student ID'),
 ];
 
+// Validation for query filter (optional classe parameter)
+const filterValidation = [
+  query('classe').optional().isMongoId().withMessage('Invalid class ID'),
+];
+
 /**
  * @swagger
  * /api/students:
