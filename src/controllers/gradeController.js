@@ -85,6 +85,23 @@ class GradeController {
       next(error);
     }
   }
+
+  // @desc    Get students with grades by teacher
+  // @route   GET /api/teachers/:teacherId/students-grades
+  // @access  Private
+  async getStudentsByTeacher(req, res, next) {
+    try {
+      const data = await gradeService.getStudentsWithGradesByTeacher(req.params.teacherId);
+
+      res.status(200).json({
+        success: true,
+        count: data.length,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new GradeController();
