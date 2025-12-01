@@ -108,6 +108,79 @@ describe('AuthController', () => {
         // role should NOT be here
       });
     });
+
+    it('should handle missing required fields', async () => {
+      // Arrange
+      req.body = { email: 'test@test.com' }; // Missing username and password
+      const error = new Error('Username and password are required');
+      authService.register.mockRejectedValue(error);
+
+      // Act
+      await authController.register(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle malicious input sanitization', async () => {
+      // Arrange - Script injection attempt
+      req.body = {
+        username: '<script>alert("xss")</script>',
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      const error = new Error('Invalid username format');
+      authService.register.mockRejectedValue(error);
+
+      // Act
+      await authController.register(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle extremely long input values', async () => {
+      // Arrange
+      req.body = {
+        username: 'a'.repeat(1000), // Extremely long username
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      const error = new Error('Username too long');
+      authService.register.mockRejectedValue(error);
+
+      // Act
+      await authController.register(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle special characters in username', async () => {
+      // Arrange
+      req.body = {
+        username: 'user@#$%',
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      const mockResult = {
+        data: {
+          token: 'jwt.token.here',
+          user: { ...users.valid, username: 'user@#$%' }
+        }
+      };
+      authService.register.mockResolvedValue(mockResult);
+
+      // Act
+      await authController.register(req, res, next);
+
+      // Assert
+      expect(authService.register).toHaveBeenCalledWith({
+        username: 'user@#$%',
+        email: 'test@test.com',
+        password: 'password123'
+      });
+    });
   });
 
   describe('login', () => {
@@ -173,6 +246,45 @@ describe('AuthController', () => {
       // Assert
       expect(next).toHaveBeenCalledWith(error);
     });
+
+    it('should handle invalid email format', async () => {
+      // Arrange
+      req.body = { email: 'invalid-email', password: 'password123' };
+      const error = new Error('Please provide a valid email address');
+      authService.login.mockRejectedValue(error);
+
+      // Act
+      await authController.login(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle account locked scenarios', async () => {
+      // Arrange
+      req.body = { email: 'locked@test.com', password: 'password123' };
+      const error = new Error('Account is temporarily locked due to too many failed login attempts');
+      authService.login.mockRejectedValue(error);
+
+      // Act
+      await authController.login(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle SQL injection attempt in email', async () => {
+      // Arrange - Simulate malicious input
+      req.body = { email: "'; DROP TABLE users; --", password: 'password123' };
+      const error = new Error('Invalid email format');
+      authService.login.mockRejectedValue(error);
+
+      // Act
+      await authController.login(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
   });
 
   describe('logout', () => {
@@ -199,6 +311,36 @@ describe('AuthController', () => {
 
       // Assert
       expect(next).toHaveBeenCalled();
+    });
+
+    it('should handle logout when user is not authenticated', async () => {
+      // Arrange
+      req.user = null; // No authenticated user
+
+      // Act
+      await authController.logout(req, res, next);
+
+      // Assert - Should still succeed (stateless logout)
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        message: 'Logout successful. Please remove the token from client storage.'
+      });
+    });
+
+    it('should handle multiple logout attempts', async () => {
+      // Arrange - Simulate already logged out user
+      req.user = { _id: mockIds.user1, isActive: false };
+
+      // Act
+      await authController.logout(req, res, next);
+
+      // Assert - Should handle gracefully
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        message: 'Logout successful. Please remove the token from client storage.'
+      });
     });
   });
 

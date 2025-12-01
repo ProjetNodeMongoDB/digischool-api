@@ -159,6 +159,128 @@ describe('GradeController', () => {
       expect(res.status).toHaveBeenCalledWith(200);
     });
 
+    it('should filter grades by all parameters simultaneously', async () => {
+      // Arrange
+      req.query.student = mockIds.student1;
+      req.query.class = mockIds.class1;
+      req.query.subject = mockIds.subject1;
+      req.query.trimester = mockIds.trimester1;
+      const mockGrades = [grades.valid];
+      gradeService.getAllGrades.mockResolvedValue(mockGrades);
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert
+      expect(gradeService.getAllGrades).toHaveBeenCalledWith({
+        student: mockIds.student1,
+        class: mockIds.class1,
+        subject: mockIds.subject1,
+        trimester: mockIds.trimester1
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should handle invalid ObjectId in query parameters', async () => {
+      // Arrange
+      req.query.student = 'invalid-id';
+      req.query.class = 'another-invalid-id';
+      const error = new Error('Invalid ObjectId format');
+      gradeService.getAllGrades.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle empty string filter parameters', async () => {
+      // Arrange
+      req.query.student = '';
+      req.query.class = '';
+      req.query.subject = '';
+      req.query.trimester = '';
+      const mockGrades = [grades.valid];
+      gradeService.getAllGrades.mockResolvedValue(mockGrades);
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert
+      expect(gradeService.getAllGrades).toHaveBeenCalledWith({
+        student: '',
+        class: '',
+        subject: '',
+        trimester: ''
+      });
+    });
+
+    it('should handle non-existent filter combinations', async () => {
+      // Arrange
+      req.query.student = mockIds.student1;
+      req.query.subject = mockIds.subject1;
+      gradeService.getAllGrades.mockResolvedValue([]); // No grades match
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        count: 0,
+        data: []
+      });
+    });
+
+    it('should handle SQL injection attempts in query parameters', async () => {
+      // Arrange
+      req.query.student = "'; DROP TABLE grades; --";
+      req.query.class = "1 OR 1=1";
+      const error = new Error('Invalid filter format');
+      gradeService.getAllGrades.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle extremely long query parameter values', async () => {
+      // Arrange
+      req.query.student = 'a'.repeat(1000); // Extremely long value
+      const error = new Error('Query parameter too long');
+      gradeService.getAllGrades.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should ignore unexpected query parameters', async () => {
+      // Arrange
+      req.query.student = mockIds.student1;
+      req.query.unexpectedParam = 'should-be-ignored';
+      req.query.anotherBadParam = 'also-ignored';
+      const mockGrades = [grades.valid];
+      gradeService.getAllGrades.mockResolvedValue(mockGrades);
+
+      // Act
+      await gradeController.getAll(req, res, next);
+
+      // Assert - Only valid parameters should be passed
+      expect(gradeService.getAllGrades).toHaveBeenCalledWith({
+        student: mockIds.student1,
+        class: undefined,
+        subject: undefined,
+        trimester: undefined
+      });
+    });
+
     it('should call next with error on service failure', async () => {
       // Arrange
       const error = new Error('Database error');
