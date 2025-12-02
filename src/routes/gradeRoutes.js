@@ -50,6 +50,52 @@ const filterValidation = [
   query('trimester').optional().isMongoId().withMessage('Invalid trimester ID')
 ];
 
+// Validation for teacher ID parameter
+const teacherIdValidation = [
+  param('teacherId').isMongoId().withMessage('Invalid teacher ID')
+];
+
+/**
+ * @swagger
+ * /api/grades/teachers/{teacherId}/students-grades:
+ *   get:
+ *     summary: Get all students with their grades for a specific teacher
+ *     tags: [Grades]
+ *     description: Retrieve all students taught by a teacher with their respective grades grouped by student
+ *     parameters:
+ *       - in: path
+ *         name: teacherId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the teacher
+ *         example: 507f1f77bcf86cd799439014
+ *     responses:
+ *       200:
+ *         description: List of students with their grades
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Invalid teacher ID format
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ */
+
 /**
  * @swagger
  * /api/grades:
@@ -326,6 +372,10 @@ const filterValidation = [
  */
 
 // Routes with authentication
+// Teacher's students-grades endpoint - specific routes before generic ones
+router.get('/teachers/:teacherId/students-grades', protect, teacherIdValidation, validate, gradeController.getStudentsByTeacher);
+
+// Standard grade CRUD endpoints
 router.get('/', protect, filterValidation, validate, gradeController.getAll);
 router.get('/:id', protect, idValidation, validate, gradeController.getById);
 router.post('/', protect, authorize('admin', 'teacher'), gradeValidationRules, validate, gradeController.create);

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const teacherController = require('../controllers/teacherController');
-const gradeController = require('../controllers/gradeController');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validation');
 const { protect, authorize } = require('../middlewares/authMiddleware');
@@ -50,110 +49,6 @@ const classeQueryValidation = [
     .optional()
     .isMongoId().withMessage('Invalid class ID'),
 ];
-
-const teacherIdValidation = [
-  param('teacherId').isMongoId().withMessage('Invalid teacher ID'),
-];
-
-/**
- * @swagger
- * /api/teachers/{teacherId}/students-grades:
- *   get:
- *     summary: Get students with their grades for a specific teacher
- *     tags: [Teachers]
- *     description: Retrieve all students taught by a teacher with their respective grades grouped by student
- *     parameters:
- *       - in: path
- *         name: teacherId
- *         required: true
- *         schema:
- *           type: string
- *         description: MongoDB ObjectId of the teacher
- *         example: 507f1f77bcf86cd799439014
- *     responses:
- *       200:
- *         description: List of students with their grades
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 count:
- *                   type: integer
- *                   example: 5
- *                   description: Number of students
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       student:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             example: 507f1f77bcf86cd799439011
- *                           nom:
- *                             type: string
- *                             example: Dupont
- *                           prenom:
- *                             type: string
- *                             example: Jean
- *                           dateNaissance:
- *                             type: string
- *                             format: date
- *                             example: 2010-05-15
- *                       grades:
- *                         type: array
- *                         items:
- *                           type: object
- *                           properties:
- *                             _id:
- *                               type: string
- *                               example: 608f1f77bcf86cd799439022
- *                             note:
- *                               type: number
- *                               example: 15.5
- *                             coefficient:
- *                               type: number
- *                               example: 2
- *                             matiere:
- *                               type: object
- *                               properties:
- *                                 _id:
- *                                   type: string
- *                                 nom:
- *                                   type: string
- *                                   example: Mathématiques
- *                             trimestre:
- *                               type: object
- *                               properties:
- *                                 _id:
- *                                   type: string
- *                                 nom:
- *                                   type: string
- *                                   example: Trimestre 1
- *                             classe:
- *                               type: object
- *                               properties:
- *                                 _id:
- *                                   type: string
- *                                 nom:
- *                                   type: string
- *                                   example: CM1
- *                             createdAt:
- *                               type: string
- *                               format: date-time
- *       400:
- *                         description: Invalid teacher ID format
- *       404:
- *         description: Teacher not found
- *       500:
- *         description: Server error
- */
 
 /**
  * @swagger
@@ -374,7 +269,6 @@ const teacherIdValidation = [
 
 // Routes with authentication
 router.get('/', protect, classeQueryValidation, validate, teacherController.getAll);
-router.get('/:teacherId/students-grades', protect, teacherIdValidation, validate, gradeController.getStudentsByTeacher);
 router.get('/:id', protect, idValidation, validate, teacherController.getById);
 router.post('/', protect, authorize('admin'), teacherValidationRules, validate, teacherController.create);
 router.put('/:id', protect, authorize('admin'), idValidation, teacherValidationRules, validate, teacherController.update);

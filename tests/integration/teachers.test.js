@@ -256,7 +256,7 @@ describe('Teacher API', () => {
     });
   });
 
-  describe('GET /api/teachers/:teacherId/students-grades', () => {
+  describe('GET /api/grades/teachers/:teacherId/students-grades', () => {
     let teacherId, student1Id, student2Id, classId, subject1Id, subject2Id, trimesterId;
 
     beforeEach(async () => {
@@ -352,7 +352,7 @@ describe('Teacher API', () => {
 
     it('should return students grouped with their grades', async () => {
       const response = await request(app)
-        .get(`/api/teachers/${teacherId}/students-grades`)
+        .get(`/api/grades/teachers/${teacherId}/students-grades`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -392,7 +392,7 @@ describe('Teacher API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/teachers/${newTeacher._id}/students-grades`)
+        .get(`/api/grades/teachers/${newTeacher._id}/students-grades`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -403,7 +403,7 @@ describe('Teacher API', () => {
 
     it('should return 400 for invalid teacher ID format', async () => {
       const response = await request(app)
-        .get('/api/teachers/invalid-id/students-grades')
+        .get('/api/grades/teachers/invalid-id/students-grades')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
@@ -414,7 +414,7 @@ describe('Teacher API', () => {
       const nonExistentId = '507f1f77bcf86cd799439999';
 
       const response = await request(app)
-        .get(`/api/teachers/${nonExistentId}/students-grades`)
+        .get(`/api/grades/teachers/${nonExistentId}/students-grades`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
@@ -424,7 +424,7 @@ describe('Teacher API', () => {
 
     it('should require authentication', async () => {
       const response = await request(app)
-        .get(`/api/teachers/${teacherId}/students-grades`)
+        .get(`/api/grades/teachers/${teacherId}/students-grades`)
         .expect(401);
 
       expect(response.body.success).toBe(false);
