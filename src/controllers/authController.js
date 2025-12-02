@@ -145,8 +145,10 @@ class AuthController {
                 }
             ).select('-password');
 
-            // Log the role change for audit purposes
-            console.log(`[AUDIT] Admin ${req.user.username} (${req.user._id}) changed user ${targetUser.username} (${userId}) role from ${originalRole} to ${role}`);
+            // Log the role change for audit purposes (suppress in test environment)
+            if (process.env.NODE_ENV !== 'test') {
+                console.log(`[AUDIT] Admin ${req.user.username} (${req.user._id}) changed user ${targetUser.username} (${userId}) role from ${originalRole} to ${role}`);
+            }
 
             res.status(200).json({
                 success: true,
