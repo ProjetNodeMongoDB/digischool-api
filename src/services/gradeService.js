@@ -24,6 +24,68 @@ class GradeService {
       .sort({ createdAt: -1 });
   }
 
+  /**
+   * Get students with their grades filtered by teacher
+   * Groups grades by student, showing all grades given by specific teacher
+   * Useful for teacher dashboards to view all students they teach
+   * @param {string} teacherId - Teacher ObjectId
+   * @returns {Promise<Array>} Array of objects with student info and grades array
+   * @throws {Error} If teacher not found
+   * @example
+   * const data = await gradeService.getStudentsWithGradesByTeacher('507f1f77bcf86cd799439011');
+   * // Returns: [{ student: {...}, grades: [...] }, ...]
+   */
+  async getStudentsWithGradesByTeacher(teacherId) {
+    // Verify teacher exists
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      const error = new Error('Teacher not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Find all grades given by this teacher with populated references
+    const grades = await Grade.find({ idprof: teacherId })
+      .populate('ideleve', 'nom prenom dateNaissance')
+      .populate('idmatiere', 'nom')
+      .populate('idtrimestre', 'nom')
+      .populate('idclasse', 'nom')
+      .sort({ ideleve: 1, idtrimestre: 1, idmatiere: 1 });
+
+    // Group grades by student using Map for O(1) lookup
+    const studentMap = new Map();
+
+    grades.forEach(grade => {
+      const studentId = grade.ideleve._id.toString();
+
+      // Initialize student entry if not exists
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          student: {
+            _id: grade.ideleve._id,
+            nom: grade.ideleve.nom,
+            prenom: grade.ideleve.prenom,
+            dateNaissance: grade.ideleve.dateNaissance
+          },
+          grades: []
+        });
+      }
+
+      // Add grade to student's grades array
+      studentMap.get(studentId).grades.push({
+        _id: grade._id,
+        note: grade.note,
+        coefficient: grade.coefficient,
+        matiere: grade.idmatiere,
+        trimestre: grade.idtrimestre,
+        classe: grade.idclasse,
+        createdAt: grade.createdAt
+      });
+    });
+
+    return Array.from(studentMap.values());
+  }
+
   async getGradeById(id) {
     const grade = await Grade.findById(id)
       .populate('ideleve', 'nom prenom dateNaissance')

@@ -453,4 +453,225 @@ describe('GradeController', () => {
       expect(next).toHaveBeenCalledWith(error);
     });
   });
+
+  describe('getStudentsByTeacher', () => {
+    it('should return 200 with students and their grades data', async () => {
+      // Arrange
+      req.params.teacherId = mockIds.teacher1;
+      const mockStudentsWithGrades = [
+        {
+          _id: mockIds.student1,
+          nom: 'Leroy',
+          prenom: 'Thomas',
+          classe: { _id: mockIds.class1, nom: 'CM1' },
+          grades: [
+            {
+              _id: mockIds.grade1,
+              idmatiere: { _id: mockIds.subject1, nom: 'MATHEMATIQUES' },
+              idtrimestre: { _id: mockIds.trimester1, nom: 'TRIM01' },
+              note: 15.5,
+              coefficient: 2
+            }
+          ]
+        }
+      ];
+      gradeService.getStudentsWithGradesByTeacher.mockResolvedValue(mockStudentsWithGrades);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(gradeService.getStudentsWithGradesByTeacher).toHaveBeenCalledWith(mockIds.teacher1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        count: mockStudentsWithGrades.length,
+        data: mockStudentsWithGrades
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 200 with empty array when teacher has no students', async () => {
+      // Arrange
+      req.params.teacherId = mockIds.teacher2;
+      gradeService.getStudentsWithGradesByTeacher.mockResolvedValue([]);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(gradeService.getStudentsWithGradesByTeacher).toHaveBeenCalledWith(mockIds.teacher2);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        count: 0,
+        data: []
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 200 with multiple students and their grades', async () => {
+      // Arrange
+      req.params.teacherId = mockIds.teacher1;
+      const mockStudentsWithGrades = [
+        {
+          _id: mockIds.student1,
+          nom: 'Leroy',
+          prenom: 'Thomas',
+          classe: { _id: mockIds.class1, nom: 'CM1' },
+          grades: [
+            { note: 15.5, coefficient: 2, idmatiere: { nom: 'MATHEMATIQUES' } },
+            { note: 17, coefficient: 1, idmatiere: { nom: 'FRANCAIS' } }
+          ]
+        },
+        {
+          _id: mockIds.student2,
+          nom: 'Bernard',
+          prenom: 'Marie',
+          classe: { _id: mockIds.class1, nom: 'CM1' },
+          grades: [
+            { note: 16, coefficient: 2, idmatiere: { nom: 'MATHEMATIQUES' } }
+          ]
+        }
+      ];
+      gradeService.getStudentsWithGradesByTeacher.mockResolvedValue(mockStudentsWithGrades);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        count: 2,
+        data: mockStudentsWithGrades
+      });
+    });
+
+    it('should call next with error when teacher not found', async () => {
+      // Arrange
+      req.params.teacherId = edgeCases.nonExistentId;
+      const error = new Error('Teacher not found');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(gradeService.getStudentsWithGradesByTeacher).toHaveBeenCalledWith(edgeCases.nonExistentId);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('should call next with error for invalid teacherId format', async () => {
+      // Arrange
+      req.params.teacherId = edgeCases.invalidObjectId;
+      const error = new Error('Invalid teacher ID format');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(gradeService.getStudentsWithGradesByTeacher).toHaveBeenCalledWith(edgeCases.invalidObjectId);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should handle missing teacherId parameter', async () => {
+      // Arrange
+      req.params.teacherId = undefined;
+      const error = new Error('Teacher ID is required');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle SQL injection attempts in teacherId', async () => {
+      // Arrange
+      req.params.teacherId = "'; DROP TABLE students; --";
+      const error = new Error('Invalid teacher ID format');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle XSS attempts in teacherId', async () => {
+      // Arrange
+      req.params.teacherId = '<script>alert("XSS")</script>';
+      const error = new Error('Invalid teacher ID format');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should call next with error on service failure', async () => {
+      // Arrange
+      req.params.teacherId = mockIds.teacher1;
+      const error = new Error('Database connection failed');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('should handle extremely long teacherId values', async () => {
+      // Arrange
+      req.params.teacherId = 'a'.repeat(1000);
+      const error = new Error('Invalid teacher ID format');
+      gradeService.getStudentsWithGradesByTeacher.mockRejectedValue(error);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(next).toHaveBeenCalledWith(error);
+    });
+
+    it('should return correct count for single student with multiple grades', async () => {
+      // Arrange
+      req.params.teacherId = mockIds.teacher1;
+      const mockStudentsWithGrades = [
+        {
+          _id: mockIds.student1,
+          nom: 'Leroy',
+          prenom: 'Thomas',
+          grades: [
+            { note: 15, idmatiere: { nom: 'MATHEMATIQUES' } },
+            { note: 16, idmatiere: { nom: 'FRANCAIS' } },
+            { note: 14, idmatiere: { nom: 'HISTOIRE' } }
+          ]
+        }
+      ];
+      gradeService.getStudentsWithGradesByTeacher.mockResolvedValue(mockStudentsWithGrades);
+
+      // Act
+      await gradeController.getStudentsByTeacher(req, res, next);
+
+      // Assert
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        count: 1, // Count of students, not grades
+        data: mockStudentsWithGrades
+      });
+    });
+  });
 });

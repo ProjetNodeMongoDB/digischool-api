@@ -495,4 +495,115 @@ describe('GradeService', () => {
         .rejects.toThrow('DB error');
     });
   });
+
+  describe('getStudentsWithGradesByTeacher', () => {
+    it('should return students grouped with their grades', async () => {
+      const mockGrades = [
+        {
+          _id: mockIds.grade1,
+          ideleve: { _id: mockIds.student1, nom: 'Martin', prenom: 'Sophie', dateNaissance: '2015-05-20' },
+          idmatiere: { _id: mockIds.subject1, nom: 'Math' },
+          idtrimestre: { _id: mockIds.trimester1, nom: 'T1' },
+          idclasse: { _id: mockIds.class1, nom: 'CM1' },
+          note: 15,
+          coefficient: 2,
+          createdAt: new Date()
+        },
+        {
+          _id: mockIds.grade2,
+          ideleve: { _id: mockIds.student1, nom: 'Martin', prenom: 'Sophie', dateNaissance: '2015-05-20' },
+          idmatiere: { _id: mockIds.subject2, nom: 'French' },
+          idtrimestre: { _id: mockIds.trimester1, nom: 'T1' },
+          idclasse: { _id: mockIds.class1, nom: 'CM1' },
+          note: 12,
+          coefficient: 1,
+          createdAt: new Date()
+        },
+        {
+          _id: '608f1f77bcf86cd799439033',
+          ideleve: { _id: mockIds.student2, nom: 'Duplessis', prenom: 'Pierre', dateNaissance: '2015-08-15' },
+          idmatiere: { _id: mockIds.subject1, nom: 'Math' },
+          idtrimestre: { _id: mockIds.trimester1, nom: 'T1' },
+          idclasse: { _id: mockIds.class1, nom: 'CM1' },
+          note: 18,
+          coefficient: 2,
+          createdAt: new Date()
+        }
+      ];
+
+      Teacher.findById.mockResolvedValue({ _id: mockIds.teacher1, nom: 'Dupont', prenom: 'Jean' });
+
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockGrades),
+      };
+      Grade.find.mockReturnValue(mockQuery);
+
+      const result = await gradeService.getStudentsWithGradesByTeacher(mockIds.teacher1);
+
+      expect(Teacher.findById).toHaveBeenCalledWith(mockIds.teacher1);
+      expect(Grade.find).toHaveBeenCalledWith({ idprof: mockIds.teacher1 });
+      expect(mockQuery.populate).toHaveBeenCalledTimes(4);
+      expect(mockQuery.populate).toHaveBeenCalledWith('ideleve', 'nom prenom dateNaissance');
+      expect(mockQuery.populate).toHaveBeenCalledWith('idmatiere', 'nom');
+      expect(mockQuery.populate).toHaveBeenCalledWith('idtrimestre', 'nom');
+      expect(mockQuery.populate).toHaveBeenCalledWith('idclasse', 'nom');
+
+      // Verify grouping
+      expect(result).toHaveLength(2); // 2 students
+      expect(result[0]).toHaveProperty('student');
+      expect(result[0]).toHaveProperty('grades');
+      expect(result[0].grades).toHaveLength(2); // Student 1 has 2 grades
+      expect(result[1].grades).toHaveLength(1); // Student 2 has 1 grade
+    });
+
+    it('should return empty array when teacher has no grades', async () => {
+      Teacher.findById.mockResolvedValue({ _id: mockIds.teacher1, nom: 'Dupont', prenom: 'Jean' });
+
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([]),
+      };
+      Grade.find.mockReturnValue(mockQuery);
+
+      const result = await gradeService.getStudentsWithGradesByTeacher(mockIds.teacher1);
+
+      expect(Teacher.findById).toHaveBeenCalledWith(mockIds.teacher1);
+      expect(result).toEqual([]);
+    });
+
+    it('should throw error when teacher not found', async () => {
+      Teacher.findById.mockResolvedValue(null);
+
+      await expect(gradeService.getStudentsWithGradesByTeacher(edgeCases.nonExistentId))
+        .rejects.toThrow('Teacher not found');
+    });
+
+    it('should handle invalid ObjectId format', async () => {
+      Teacher.findById.mockRejectedValue(new Error('Cast to ObjectId failed'));
+
+      await expect(gradeService.getStudentsWithGradesByTeacher(edgeCases.invalidObjectId))
+        .rejects.toThrow('Cast to ObjectId failed');
+    });
+
+    it('should propagate database errors during teacher lookup', async () => {
+      Teacher.findById.mockRejectedValue(new Error('Connection timeout'));
+
+      await expect(gradeService.getStudentsWithGradesByTeacher(mockIds.teacher1))
+        .rejects.toThrow('Connection timeout');
+    });
+
+    it('should propagate database errors during grades retrieval', async () => {
+      Teacher.findById.mockResolvedValue({ _id: mockIds.teacher1, nom: 'Dupont' });
+
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockRejectedValue(new Error('DB error')),
+      };
+      Grade.find.mockReturnValue(mockQuery);
+
+      await expect(gradeService.getStudentsWithGradesByTeacher(mockIds.teacher1))
+        .rejects.toThrow('DB error');
+    });
+  });
 });

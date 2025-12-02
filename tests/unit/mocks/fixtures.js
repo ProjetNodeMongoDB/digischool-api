@@ -87,24 +87,6 @@ const invalidStudentInput = {
     classe: 'invalid-id-format',
 };
 
-const validStudentWithPopulate = {
-  _id: mockIds.student1,
-  nom: 'Leroy',
-  prenom: 'Thomas',
-  sexe: 'HOMME',
-  dateNaissance: new Date('2010-03-20'),
-  classe: {
-    _id: mockIds.class1,
-    nom: 'CM1',
-  },
-  adresse: '456 Avenue Victor Hugo, 75016 Paris',
-};
-
-const invalidStudentInput = {
-  nom: 'Test',
-  classe: 'invalid-id-format',
-};
-
 // Class fixtures
 const validClass = {
     _id: mockIds.class1,
@@ -139,21 +121,6 @@ const invalidClassInput = {
 const duplicateClassInput = {
     nom: 'CM1',
     prof: mockIds.teacher2,
-};
-
-const validClassInput = {
-  nom: 'CM2-B',
-  prof: mockIds.teacher2,
-};
-
-const invalidClassInput = {
-  nom: '',
-  prof: 'invalid-id-format',
-};
-
-const duplicateClassInput = {
-  nom: 'CM1',
-  prof: mockIds.teacher2,
 };
 
 // Subject fixtures
@@ -288,25 +255,6 @@ const duplicateUserInput = {
     username: 'jdupont',
     email: 'jean.dupont@digischool.fr',
     password: 'password123',
-};
-
-const adminUserInput = {
-  username: 'admin',
-  email: 'admin@digischool.fr',
-  password: 'adminpass123',
-  role: 'admin',
-};
-
-const invalidUserInput = {
-  username: 'ab',
-  email: 'invalid-email',
-  password: '123',
-};
-
-const duplicateUserInput = {
-  username: 'jdupont',
-  email: 'jean.dupont@digischool.fr',
-  password: 'password123',
 };
 
 // Edge cases
