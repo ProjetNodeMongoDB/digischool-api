@@ -18,6 +18,7 @@ class GradeController {
         return res.status(200).json({
           success: true,
           count: groupedGrades.length, // Number of subjects
+          totalGrades: groupedGrades.reduce((sum, subject) => sum + subject.grades.length, 0), // Total number of grades
           data: groupedGrades,
         });
       }

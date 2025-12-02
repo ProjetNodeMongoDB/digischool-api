@@ -48,7 +48,10 @@ const filterValidation = [
   query('class').optional().isMongoId().withMessage('Invalid class ID'),
   query('subject').optional().isMongoId().withMessage('Invalid subject ID'),
   query('trimester').optional().isMongoId().withMessage('Invalid trimester ID'),
-  query('groupBy').optional().isIn(['subject']).withMessage('Invalid groupBy value. Allowed: subject')
+  query('groupBy')
+    .optional()
+    .isIn(['subject'])
+    .withMessage('Invalid groupBy value. Allowed: subject')
 ];
 
 /**
@@ -66,8 +69,8 @@ const filterValidation = [
  *
  *       **Grouped by subject (groupBy=subject):**
  *       Returns grades organized by subject for academic report generation.
- *       Each subject contains all student grades with teacher information.
- *       Only class and trimester filters apply (student/subject filters ignored).
+ *       Each subject contains all student grades with teacher information, sorted alphabetically by student last name.
+ *       Supports optional class and trimester filters (student/subject filters are ignored in grouped mode).
  *     parameters:
  *       - in: query
  *         name: student
@@ -120,6 +123,10 @@ const filterValidation = [
  *                   type: integer
  *                   example: 10
  *                   description: Number of grades (flat) or number of subjects (grouped)
+ *                 totalGrades:
+ *                   type: integer
+ *                   example: 45
+ *                   description: Total number of grades (only in grouped response)
  *                 data:
  *                   oneOf:
  *                     - type: array

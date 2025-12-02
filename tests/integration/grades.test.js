@@ -339,6 +339,11 @@ describe('Grade API', () => {
 			]);
 		});
 
+		afterEach(async () => {
+			// Clean up test data to prevent implicit dependencies between tests
+			await Grade.deleteMany({});
+		});
+
 		it('should return grades grouped by subject', async () => {
 			const response = await request(app)
 				.get('/api/grades?groupBy=subject')
