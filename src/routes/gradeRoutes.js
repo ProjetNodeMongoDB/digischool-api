@@ -47,7 +47,11 @@ const filterValidation = [
   query('student').optional().isMongoId().withMessage('Invalid student ID'),
   query('class').optional().isMongoId().withMessage('Invalid class ID'),
   query('subject').optional().isMongoId().withMessage('Invalid subject ID'),
-  query('trimester').optional().isMongoId().withMessage('Invalid trimester ID')
+  query('trimester').optional().isMongoId().withMessage('Invalid trimester ID'),
+  query('groupBy')
+    .optional()
+    .isIn(['subject'])
+    .withMessage('Invalid groupBy value. Allowed: subject')
 ];
 
 /**
@@ -56,13 +60,23 @@ const filterValidation = [
  *   get:
  *     summary: Get all grades with optional filters
  *     tags: [Grades]
- *     description: Retrieve all grades. Supports filtering by student, class, subject, or trimester.
+ *     description: |
+ *       Retrieve all grades with optional filtering and grouping.
+ *
+ *       **Default behavior (flat list):**
+ *       Returns a flat array of grades with all populated references.
+ *       Supports filtering by student, class, subject, or trimester.
+ *
+ *       **Grouped by subject (groupBy=subject):**
+ *       Returns grades organized by subject for academic report generation.
+ *       Each subject contains all student grades with teacher information, sorted alphabetically by student last name.
+ *       Supports optional class and trimester filters (student/subject filters are ignored in grouped mode).
  *     parameters:
  *       - in: query
  *         name: student
  *         schema:
  *           type: string
- *         description: Filter by student ObjectId
+ *         description: Filter by student ObjectId (flat list only)
  *         example: 507f1f77bcf86cd799439011
  *       - in: query
  *         name: class
@@ -74,7 +88,7 @@ const filterValidation = [
  *         name: subject
  *         schema:
  *           type: string
- *         description: Filter by subject ObjectId
+ *         description: Filter by subject ObjectId (flat list only)
  *         example: 507f1f77bcf86cd799439013
  *       - in: query
  *         name: trimester
@@ -82,9 +96,21 @@ const filterValidation = [
  *           type: string
  *         description: Filter by trimester ObjectId
  *         example: 507f1f77bcf86cd799439015
+ *       - in: query
+ *         name: groupBy
+ *         schema:
+ *           type: string
+ *           enum: [subject]
+ *         description: Group results by subject for academic reports
+ *         example: subject
  *     responses:
  *       200:
- *         description: List of all grades (filtered if query params provided)
+ *         description: |
+ *           List of grades (flat or grouped based on groupBy parameter).
+ *
+ *           **Flat response:** Array of grade objects with populated references
+ *
+ *           **Grouped response:** Array of subjects, each containing grades array
  *         content:
  *           application/json:
  *             schema:
@@ -96,12 +122,60 @@ const filterValidation = [
  *                 count:
  *                   type: integer
  *                   example: 10
+ *                   description: Number of grades (flat) or number of subjects (grouped)
+ *                 totalGrades:
+ *                   type: integer
+ *                   example: 45
+ *                   description: Total number of grades (only in grouped response)
  *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Grade'
+ *                   oneOf:
+ *                     - type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Grade'
+ *                     - type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           subject:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 507f1f77bcf86cd799439013
+ *                               nom:
+ *                                 type: string
+ *                                 example: Mathematics
+ *                           grades:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 student:
+ *                                   type: object
+ *                                   properties:
+ *                                     nom:
+ *                                       type: string
+ *                                       example: Martin
+ *                                     prenom:
+ *                                       type: string
+ *                                       example: Sophie
+ *                                 note:
+ *                                   type: number
+ *                                   example: 15
+ *                                 coefficient:
+ *                                   type: number
+ *                                   example: 2
+ *                                 teacher:
+ *                                   type: object
+ *                                   properties:
+ *                                     nom:
+ *                                       type: string
+ *                                       example: Dupont
+ *                                     prenom:
+ *                                       type: string
+ *                                       example: Jean
  *       400:
- *         description: Invalid filter parameters
+ *         description: Invalid filter parameters or groupBy value
  *       500:
  *         description: Server error
  *

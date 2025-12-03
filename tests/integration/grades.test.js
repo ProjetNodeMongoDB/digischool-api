@@ -287,6 +287,177 @@ describe('Grade API', () => {
 		});
 	});
 
+	describe('GET /api/grades?groupBy=subject', () => {
+		beforeEach(async () => {
+			// Create test data for grouped tests
+			await Grade.create([
+				{
+					ideleve: studentId,
+					idclasse: classId,
+					idmatiere: subjectId, // Mathematics
+					idprof: teacherId,
+					idtrimestre: trimesterId,
+					note: 15,
+					coefficient: 2
+				},
+				{
+					ideleve: student2Id,
+					idclasse: classId,
+					idmatiere: subjectId, // Mathematics
+					idprof: teacherId,
+					idtrimestre: trimesterId,
+					note: 12,
+					coefficient: 2
+				},
+				{
+					ideleve: studentId,
+					idclasse: classId,
+					idmatiere: subject2Id, // French
+					idprof: teacherId,
+					idtrimestre: trimesterId,
+					note: 14,
+					coefficient: 1
+				},
+				{
+					ideleve: studentId,
+					idclasse: class2Id,
+					idmatiere: subjectId, // Mathematics, different class
+					idprof: teacherId,
+					idtrimestre: trimesterId,
+					note: 16,
+					coefficient: 2
+				},
+				{
+					ideleve: studentId,
+					idclasse: classId,
+					idmatiere: subjectId, // Mathematics, different trimester
+					idprof: teacherId,
+					idtrimestre: trimester2Id,
+					note: 18,
+					coefficient: 2
+				}
+			]);
+		});
+
+		afterEach(async () => {
+			// Clean up test data to prevent implicit dependencies between tests
+			await Grade.deleteMany({});
+		});
+
+		it('should return grades grouped by subject', async () => {
+			const response = await request(app)
+				.get('/api/grades?groupBy=subject')
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(2); // 2 subjects: Mathematics and French
+			expect(Array.isArray(response.body.data)).toBe(true);
+
+			// Verify structure of grouped response
+			const firstSubject = response.body.data[0];
+			expect(firstSubject).toHaveProperty('subject');
+			expect(firstSubject.subject).toHaveProperty('_id');
+			expect(firstSubject.subject).toHaveProperty('nom');
+			expect(firstSubject).toHaveProperty('grades');
+			expect(Array.isArray(firstSubject.grades)).toBe(true);
+
+			// Verify grade structure
+			const firstGrade = firstSubject.grades[0];
+			expect(firstGrade).toHaveProperty('student');
+			expect(firstGrade.student).toHaveProperty('nom');
+			expect(firstGrade.student).toHaveProperty('prenom');
+			expect(firstGrade).toHaveProperty('note');
+			expect(firstGrade).toHaveProperty('coefficient');
+			expect(firstGrade).toHaveProperty('teacher');
+			expect(firstGrade.teacher).toHaveProperty('nom');
+			expect(firstGrade.teacher).toHaveProperty('prenom');
+		});
+
+		it('should filter grouped grades by trimester', async () => {
+			const response = await request(app)
+				.get(`/api/grades?groupBy=subject&trimester=${trimesterId}`)
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(2); // 2 subjects in trimester 1
+
+			// Count total grades across all subjects
+			const totalGrades = response.body.data.reduce((sum, subject) => sum + subject.grades.length, 0);
+			expect(totalGrades).toBe(4); // 4 grades in trimester 1
+		});
+
+		it('should filter grouped grades by class', async () => {
+			const response = await request(app)
+				.get(`/api/grades?groupBy=subject&class=${classId}`)
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(2); // 2 subjects in class CM1
+
+			// Count total grades across all subjects
+			const totalGrades = response.body.data.reduce((sum, subject) => sum + subject.grades.length, 0);
+			expect(totalGrades).toBe(4); // 4 grades in class CM1
+		});
+
+		it('should filter grouped grades by both trimester and class', async () => {
+			const response = await request(app)
+				.get(`/api/grades?groupBy=subject&trimester=${trimesterId}&class=${classId}`)
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(2); // 2 subjects
+
+			// Count total grades
+			const totalGrades = response.body.data.reduce((sum, subject) => sum + subject.grades.length, 0);
+			expect(totalGrades).toBe(3); // 3 grades matching both filters
+		});
+
+		it('should return empty array when no grades match filters', async () => {
+			// Use a non-existent ObjectId
+			const nonExistentId = new mongoose.Types.ObjectId();
+
+			const response = await request(app)
+				.get(`/api/grades?groupBy=subject&trimester=${nonExistentId}`)
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(0);
+			expect(response.body.data).toEqual([]);
+		});
+
+		it('should return 400 for invalid groupBy value', async () => {
+			const response = await request(app)
+				.get('/api/grades?groupBy=invalid')
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(400);
+
+			expect(response.body.success).toBe(false);
+		});
+
+		it('should maintain backward compatibility without groupBy parameter', async () => {
+			// Test that normal flat list still works
+			const response = await request(app)
+				.get('/api/grades')
+				.set('Authorization', `Bearer ${authToken}`)
+				.expect(200);
+
+			expect(response.body.success).toBe(true);
+			expect(response.body.count).toBe(5);
+			expect(Array.isArray(response.body.data)).toBe(true);
+
+			// Verify it's a flat list, not grouped
+			const firstItem = response.body.data[0];
+			expect(firstItem).toHaveProperty('_id');
+			expect(firstItem).toHaveProperty('note');
+			expect(firstItem).not.toHaveProperty('grades'); // Should not have 'grades' array
+		});
+	});
+
 	describe('GET /api/grades/:id', () => {
 		it('should get a grade by ID', async () => {
 			const grade = await Grade.create({

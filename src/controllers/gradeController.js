@@ -6,7 +6,24 @@ class GradeController {
   // @access  Private
   async getAll(req, res, next) {
     try {
-      // Parse query parameters for filtering
+      // Check for grouped request
+      if (req.query.groupBy === 'subject') {
+        const filters = {
+          class: req.query.class,
+          trimester: req.query.trimester
+        };
+
+        const groupedGrades = await gradeService.getGradesGroupedBySubject(filters);
+
+        return res.status(200).json({
+          success: true,
+          count: groupedGrades.length, // Number of subjects
+          totalGrades: groupedGrades.reduce((sum, subject) => sum + subject.grades.length, 0), // Total number of grades
+          data: groupedGrades,
+        });
+      }
+
+      // Default behavior: flat list (unchanged for backward compatibility)
       const filters = {
         student: req.query.student,    // ?student=ID
         class: req.query.class,        // ?class=ID

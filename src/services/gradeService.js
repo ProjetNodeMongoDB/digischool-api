@@ -86,6 +86,64 @@ class GradeService {
     return Array.from(studentMap.values());
   }
 
+  /**
+   * Retrieves grades grouped by subject with optional trimester and class filters.
+   * Uses JavaScript grouping for simplicity and junior developer readability.
+   * @param {Object} filters - Optional filters (class, trimester)
+   * @returns {Promise<Array>} Array of subjects with nested student grades, sorted by student name
+   * @throws {Error} If grouping fails
+   */
+  async getGradesGroupedBySubject(filters = {}) {
+    try {
+      const query = {};
+
+      // Reuse existing filter logic (only class and trimester for grouped view)
+      if (filters.class) query.idclasse = filters.class;
+      if (filters.trimester) query.idtrimestre = filters.trimester;
+
+      // Fetch grades with populated references, sorted by student name alphabetically
+      const grades = await Grade.find(query)
+        .populate('ideleve', 'nom prenom')
+        .populate('idmatiere', 'nom')
+        .populate('idprof', 'nom prenom')
+        .sort({ 'ideleve.nom': 1 });
+
+      // Group by subject using JavaScript (simple, readable)
+      const groupedBySubject = {};
+
+      grades.forEach(grade => {
+        const subjectId = grade.idmatiere._id.toString();
+
+        if (!groupedBySubject[subjectId]) {
+          groupedBySubject[subjectId] = {
+            subject: {
+              _id: grade.idmatiere._id,
+              nom: grade.idmatiere.nom
+            },
+            grades: []
+          };
+        }
+
+        groupedBySubject[subjectId].grades.push({
+          student: {
+            nom: grade.ideleve.nom,
+            prenom: grade.ideleve.prenom
+          },
+          note: grade.note,
+          coefficient: grade.coefficient,
+          teacher: {
+            nom: grade.idprof.nom,
+            prenom: grade.idprof.prenom
+          }
+        });
+      });
+
+      return Object.values(groupedBySubject);
+    } catch (error) {
+      throw new Error(`Failed to group grades by subject: ${error.message}`);
+    }
+  }
+
   async getGradeById(id) {
     const grade = await Grade.findById(id)
       .populate('ideleve', 'nom prenom dateNaissance')
