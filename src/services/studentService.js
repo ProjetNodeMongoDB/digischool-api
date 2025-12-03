@@ -78,6 +78,71 @@ class StudentService {
 
     return students;
   }
+
+  /**
+   * Get students grouped by class
+   * Returns all students organized by their classes for academic reporting
+   * @returns {Promise<Array>} Array of classes with nested students array
+   * @throws {Error} If grouping fails
+   * @example
+   * const data = await studentService.getStudentsGroupedByClass();
+   * // Returns: [{ class: {...}, students: [...] }, ...]
+   */
+  async getStudentsGroupedByClass() {
+    try {
+      // Fetch all students with populated class and teacher info
+      const students = await Student.find()
+        .populate({
+          path: 'classe',
+          select: 'nom',
+          populate: {
+            path: 'prof',
+            select: 'nom prenom'
+          }
+        })
+        .sort({ nom: 1, prenom: 1 });
+
+      // Group students by class using JavaScript grouping
+      const groupedByClass = {};
+
+      students.forEach(student => {
+        // Skip students without assigned class
+        if (!student.classe) {
+          return;
+        }
+
+        const classId = student.classe._id.toString();
+
+        if (!groupedByClass[classId]) {
+          groupedByClass[classId] = {
+            class: {
+              _id: student.classe._id,
+              nom: student.classe.nom,
+              prof: student.classe.prof ? {
+                nom: student.classe.prof.nom,
+                prenom: student.classe.prof.prenom
+              } : null
+            },
+            students: []
+          };
+        }
+
+        // Add student to class group
+        groupedByClass[classId].students.push({
+          _id: student._id,
+          nom: student.nom,
+          prenom: student.prenom,
+          dateNaissance: student.dateNaissance,
+          sexe: student.sexe,
+          adresse: student.adresse
+        });
+      });
+
+      return Object.values(groupedByClass);
+    } catch (error) {
+      throw new Error(`Failed to group students by class: ${error.message}`);
+    }
+  }
 }
 
 module.exports = new StudentService();

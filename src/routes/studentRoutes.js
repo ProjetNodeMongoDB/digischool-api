@@ -47,20 +47,55 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid student ID'),
 ];
 
-// Validation for query filter (optional classe parameter)
+// Validation for query filter (optional classe and groupBy parameters)
 const filterValidation = [
   query('classe').optional().isMongoId().withMessage('Invalid class ID'),
+  query('groupBy')
+    .optional()
+    .isIn(['class'])
+    .withMessage('Invalid groupBy value. Allowed: class')
 ];
 
 /**
  * @swagger
  * /api/students:
  *   get:
- *     summary: Get all students
+ *     summary: Get all students with optional filtering and grouping
  *     tags: [Students]
+ *     description: |
+ *       Retrieve all students with optional filtering and grouping capabilities.
+ *
+ *       **Default behavior (flat list):**
+ *       Returns a flat array of all students.
+ *
+ *       **Filter by class (classe parameter):**
+ *       Returns students belonging to a specific class.
+ *
+ *       **Grouped by class (groupBy=class):**
+ *       Returns students organized by their classes for academic reporting.
+ *       Each class contains all its students, sorted alphabetically by student last name.
+ *     parameters:
+ *       - in: query
+ *         name: classe
+ *         schema:
+ *           type: string
+ *         description: Filter by class ObjectId (ignored when using groupBy)
+ *         example: 507f1f77bcf86cd799439011
+ *       - in: query
+ *         name: groupBy
+ *         schema:
+ *           type: string
+ *           enum: [class]
+ *         description: Group results by class for academic reports
+ *         example: class
  *     responses:
  *       200:
- *         description: List of all students with populated class info
+ *         description: |
+ *           List of students (flat or grouped based on groupBy parameter).
+ *
+ *           **Flat response:** Array of student objects
+ *
+ *           **Grouped response:** Array of classes, each containing students array
  *         content:
  *           application/json:
  *             schema:
@@ -72,10 +107,60 @@ const filterValidation = [
  *                 count:
  *                   type: integer
  *                   example: 10
+ *                   description: Number of students (flat) or number of classes (grouped)
+ *                 totalStudents:
+ *                   type: integer
+ *                   example: 45
+ *                   description: Total number of students (only in grouped response)
  *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Student'
+ *                   oneOf:
+ *                     - type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Student'
+ *                     - type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           class:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: 507f1f77bcf86cd799439011
+ *                               nom:
+ *                                 type: string
+ *                                 example: CM1
+ *                               prof:
+ *                                 type: object
+ *                                 properties:
+ *                                   nom:
+ *                                     type: string
+ *                                     example: Dupont
+ *                                   prenom:
+ *                                     type: string
+ *                                     example: Jean
+ *                           students:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 _id:
+ *                                   type: string
+ *                                 nom:
+ *                                   type: string
+ *                                 prenom:
+ *                                   type: string
+ *                                 dateNaissance:
+ *                                   type: string
+ *                                   format: date
+ *                                 sexe:
+ *                                   type: string
+ *                                 adresse:
+ *                                   type: string
+ *       400:
+ *         description: Invalid filter parameters or groupBy value
+ *       404:
+ *         description: Class not found (when filtering by class)
  *       500:
  *         description: Server error
  *
