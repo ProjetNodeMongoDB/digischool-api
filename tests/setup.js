@@ -19,6 +19,14 @@ beforeAll(async () => {
 
 // Cleanup after all tests
 afterAll(async () => {
+    // Clear all collections at the end
+    const collections = mongoose.connection.collections;
+
+    for (const key in collections) {
+        const collection = collections[key];
+        await collection.deleteMany({});
+    }
+
     if (mongoose.connection.readyState !== 0) {
         await mongoose.connection.close();
     }
