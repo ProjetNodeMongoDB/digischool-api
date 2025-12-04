@@ -34,8 +34,34 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check endpoint (for Docker)
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+app.get('/health', async (req, res) => {
+  try {
+    // Check MongoDB connection
+    const mongoose = require('mongoose');
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        status: 'unhealthy',
+        error: 'Database not connected',
+        mongodb: 'disconnected'
+      });
+    }
+
+    // Ping database to verify connection
+    await mongoose.connection.db.admin().ping();
+
+    res.status(200).json({
+      status: 'ok',
+      mongodb: 'connected',
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: 'Health check failed',
+      details: error.message
+    });
+  }
 });
 
 // API routes
