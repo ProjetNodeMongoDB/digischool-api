@@ -107,18 +107,18 @@ All endpoints require `Authorization: Bearer <token>` header.
 
 | Resource | Endpoints |
 |----------|-----------|
-| **Students** | `GET, POST /api/students` <br> `GET, PUT, DELETE /api/students/:id` |
-| **Teachers** | `GET, POST /api/teachers` <br> `GET, PUT, DELETE /api/teachers/:id` |
+| **Students** | `GET, POST /api/students` <br> `GET, PUT, DELETE /api/students/:id` <br> `GET /api/students?classe=id` (filter by class) |
+| **Teachers** | `GET, POST /api/teachers` <br> `GET, PUT, DELETE /api/teachers/:id` <br> `GET /api/teachers?classe=id` (filter by class) |
 | **Classes** | `GET, POST /api/classes` <br> `GET, PUT, DELETE /api/classes/:id` |
 | **Subjects** | `GET, POST /api/subjects` <br> `GET, PUT, DELETE /api/subjects/:id` |
 | **Trimesters** | `GET, POST /api/trimesters` <br> `GET, PUT, DELETE /api/trimesters/:id` |
-| **Grades** | `GET, POST /api/grades` <br> `GET, PUT, DELETE /api/grades/:id` <br> `GET /api/grades/student/:id` <br> `GET /api/grades/class/:id` <br> `GET /api/grades/trimester/:id` |
+| **Grades** | `GET, POST /api/grades` <br> `GET, PUT, DELETE /api/grades/:id` <br> `GET /api/grades?student=id&class=id&subject=id&trimester=id&groupBy=subject` (flexible filters) <br> `GET /api/grades/teachers/:teacherId/students-grades` |
 
 ### System Endpoints (Public)
 - `GET /health` - Health check
 - `GET /api-docs` - Interactive Swagger documentation
 
-**Total:** 40+ endpoints
+**Total:** 36 endpoints (Authentication: 5, Teachers: 5, Students: 5, Classes: 5, Subjects: 5, Trimesters: 5, Grades: 6)
 
 ---
 
