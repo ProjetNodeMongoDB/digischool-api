@@ -33,6 +33,11 @@ app.use(express.urlencoded({ extended: true }));
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Health check endpoint (for Docker)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // API routes
 app.use('/api', require('./routes'));
 
