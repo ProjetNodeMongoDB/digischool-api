@@ -1,11 +1,28 @@
 const studentService = require('../services/studentService');
 
 class StudentController {
-  // @desc    Get all students
+  // @desc    Get all students with optional filtering and grouping
   // @route   GET /api/students
+  // @route   GET /api/students?classe=:classId
+  // @route   GET /api/students?groupBy=class
   // @access  Private
   async getAll(req, res, next) {
     try {
+      // Check for grouped request
+      if (req.query.groupBy === 'class') {
+        const groupedStudents = await studentService.getStudentsGroupedByClass();
+
+        // Calculate total students across all classes
+        const totalStudents = groupedStudents.reduce((sum, classGroup) => sum + classGroup.students.length, 0);
+
+        return res.status(200).json({
+          success: true,
+          count: groupedStudents.length, // Number of classes
+          totalStudents: totalStudents, // Total number of students
+          data: groupedStudents,
+        });
+      }
+
       // Check for class filter query param
       if (req.query.classe) {
         const students = await studentService.getStudentsByClass(req.query.classe);
