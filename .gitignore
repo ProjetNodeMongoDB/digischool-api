@@ -1,13 +1,12 @@
 node_modules/
 coverage/
 
-digischools.sql
 
 *.pdf
 *.html
 *.xml
 coverage/*.json
-test-results.json
+
 *.tmp.json
 *.css
 coverage/*
@@ -16,11 +15,6 @@ coverage/*
 *.log
 *.md
 *.sh
-
-CLAUDE.md
-docs
-plans
-.claude/*
 
 
 .env
@@ -33,4 +27,3 @@ plans
 .idea
 dist/
 build/
-scripts/*

@@ -20,14 +20,9 @@ jest.config.js
 .gitignore
 .gitattributes
 
-digischools.sql
-.repomixignore
 
 # Documentation
 *.md
-docs
-plans
-reports
 
 # IDE
 .vscode
@@ -51,12 +46,6 @@ docker-compose.*.yml
 # Logs
 logs
 *.log
-
-
-.claude
-.opencode
-monitoring
-scripts
 
 # Temp files
 tmp
