@@ -2,6 +2,8 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const Student = require('../../src/models/Student');
+const Class = require('../../src/models/Class');
+const Teacher = require('../../src/models/Teacher');
 const User = require('../../src/models/User');
 
 describe('Student API', () => {
@@ -513,6 +515,183 @@ describe('Student API', () => {
         .expect(500);
 
       expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('GET /api/students?groupBy=class', () => {
+    let class1Id, class2Id, teacher1Id, teacher2Id;
+
+    beforeEach(async () => {
+      // Clean up existing data
+      await Student.deleteMany({});
+      await Class.deleteMany({});
+      await Teacher.deleteMany({});
+
+      // Create teachers
+      const teacher1 = await Teacher.create({
+        nom: 'Dupont',
+        prenom: 'Jean',
+        dateNaissance: '1980-05-15',
+        adresse: '123 Rue de Paris',
+        sexe: 'HOMME',
+      });
+      teacher1Id = teacher1._id;
+
+      const teacher2 = await Teacher.create({
+        nom: 'Martin',
+        prenom: 'Marie',
+        dateNaissance: '1985-03-20',
+        adresse: '456 Avenue Test',
+        sexe: 'FEMME',
+      });
+      teacher2Id = teacher2._id;
+
+      // Create classes
+      const class1 = await Class.create({
+        nom: 'CM1',
+        prof: teacher1Id,
+      });
+      class1Id = class1._id;
+
+      const class2 = await Class.create({
+        nom: 'CM2',
+        prof: teacher2Id,
+      });
+      class2Id = class2._id;
+
+      // Create students
+      await Student.create([
+        {
+          nom: 'Martin',
+          prenom: 'Sophie',
+          classe: class1Id,
+          dateNaissance: '2015-05-20',
+          sexe: 'FEMME',
+        },
+        {
+          nom: 'Duplessis',
+          prenom: 'Pierre',
+          classe: class1Id,
+          dateNaissance: '2015-08-15',
+          sexe: 'HOMME',
+        },
+        {
+          nom: 'Bernard',
+          prenom: 'Alice',
+          classe: class2Id,
+          dateNaissance: '2014-03-10',
+          sexe: 'FEMME',
+        }
+      ]);
+    });
+
+    it('should return students grouped by class', async () => {
+      const response = await request(app)
+        .get('/api/students?groupBy=class')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(2); // 2 classes
+      expect(response.body.totalStudents).toBe(3); // 3 total students
+      expect(response.body.data).toHaveLength(2);
+
+      // Verify structure
+      const classGroup = response.body.data[0];
+      expect(classGroup).toHaveProperty('class');
+      expect(classGroup).toHaveProperty('students');
+      expect(Array.isArray(classGroup.students)).toBe(true);
+
+      // Verify class info
+      expect(classGroup.class).toHaveProperty('_id');
+      expect(classGroup.class).toHaveProperty('nom');
+      expect(classGroup.class).toHaveProperty('prof');
+      expect(classGroup.class.prof).toHaveProperty('nom');
+      expect(classGroup.class.prof).toHaveProperty('prenom');
+
+      // Verify student info
+      expect(classGroup.students[0]).toHaveProperty('_id');
+      expect(classGroup.students[0]).toHaveProperty('nom');
+      expect(classGroup.students[0]).toHaveProperty('prenom');
+      expect(classGroup.students[0]).toHaveProperty('dateNaissance');
+    });
+
+    it('should return correct number of students per class', async () => {
+      const response = await request(app)
+        .get('/api/students?groupBy=class')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+
+      // Find CM1 class in response
+      const cm1Class = response.body.data.find(c => c.class.nom === 'CM1');
+      expect(cm1Class.students).toHaveLength(2);
+
+      // Find CM2 class in response
+      const cm2Class = response.body.data.find(c => c.class.nom === 'CM2');
+      expect(cm2Class.students).toHaveLength(1);
+    });
+
+    it('should return empty array when no students exist', async () => {
+      await Student.deleteMany({});
+
+      const response = await request(app)
+        .get('/api/students?groupBy=class')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(0);
+      expect(response.body.totalStudents).toBe(0);
+      expect(response.body.data).toEqual([]);
+    });
+
+    it('should return 400 for invalid groupBy value', async () => {
+      const response = await request(app)
+        .get('/api/students?groupBy=invalid')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should maintain backward compatibility without groupBy parameter', async () => {
+      // Test that normal flat list still works
+      const response = await request(app)
+        .get('/api/students')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.count).toBe(3);
+      expect(Array.isArray(response.body.data)).toBe(true);
+
+      // Verify it's a flat list, not grouped
+      const firstItem = response.body.data[0];
+      expect(firstItem).toHaveProperty('_id');
+      expect(firstItem).toHaveProperty('nom');
+      expect(firstItem).not.toHaveProperty('students'); // Should not have 'students' array
+    });
+
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .get('/api/students?groupBy=class')
+        .expect(401);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should reject conflicting classe and groupBy parameters', async () => {
+      const response = await request(app)
+        .get(`/api/students?classe=${class1Id}&groupBy=class`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toContain('mutually exclusive');
     });
   });
 });

@@ -22,7 +22,6 @@ docs
 plans
 .claude/*
 
-package-lock.json
 
 .env
 .env.dev

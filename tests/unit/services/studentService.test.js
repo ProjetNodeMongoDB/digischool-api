@@ -217,4 +217,153 @@ describe('StudentService', () => {
         .rejects.toThrow('DB error');
     });
   });
+
+  describe('getStudentsGroupedByClass', () => {
+    it('should return students grouped by class', async () => {
+      const mockStudents = [
+        {
+          _id: mockIds.student1,
+          nom: 'Martin',
+          prenom: 'Sophie',
+          dateNaissance: new Date('2010-03-20'),
+          sexe: 'FEMME',
+          adresse: '123 Rue Test',
+          classe: {
+            _id: mockIds.class1,
+            nom: 'CM1',
+            prof: {
+              nom: 'Dupont',
+              prenom: 'Jean'
+            }
+          }
+        },
+        {
+          _id: mockIds.student2,
+          nom: 'Dubois',
+          prenom: 'Pierre',
+          dateNaissance: new Date('2010-05-15'),
+          sexe: 'HOMME',
+          adresse: '456 Avenue Test',
+          classe: {
+            _id: mockIds.class1,
+            nom: 'CM1',
+            prof: {
+              nom: 'Dupont',
+              prenom: 'Jean'
+            }
+          }
+        }
+      ];
+
+      Student.find.mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockStudents)
+      });
+
+      const result = await studentService.getStudentsGroupedByClass();
+
+      expect(Student.find).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0].class.nom).toBe('CM1');
+      expect(result[0].students).toHaveLength(2);
+      expect(result[0].students[0].nom).toBe('Martin');
+    });
+
+    it('should skip students without assigned class', async () => {
+      const mockStudents = [
+        {
+          _id: mockIds.student1,
+          nom: 'Martin',
+          prenom: 'Sophie',
+          dateNaissance: new Date('2010-03-20'),
+          sexe: 'FEMME',
+          classe: {
+            _id: mockIds.class1,
+            nom: 'CM1',
+            prof: null
+          }
+        },
+        {
+          _id: mockIds.student2,
+          nom: 'Dubois',
+          prenom: 'Pierre',
+          dateNaissance: new Date('2010-05-15'),
+          sexe: 'HOMME',
+          classe: null
+        }
+      ];
+
+      Student.find.mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockStudents)
+      });
+
+      const result = await studentService.getStudentsGroupedByClass();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].students).toHaveLength(1);
+      expect(result[0].students[0].nom).toBe('Martin');
+    });
+
+    it('should return empty array when no students', async () => {
+      Student.find.mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      });
+
+      const result = await studentService.getStudentsGroupedByClass();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should group multiple students across multiple classes', async () => {
+      const mockStudents = [
+        {
+          _id: mockIds.student1,
+          nom: 'Martin',
+          prenom: 'Sophie',
+          dateNaissance: new Date('2010-03-20'),
+          sexe: 'FEMME',
+          classe: {
+            _id: mockIds.class1,
+            nom: 'CM1',
+            prof: { nom: 'Dupont', prenom: 'Jean' }
+          }
+        },
+        {
+          _id: mockIds.student2,
+          nom: 'Dubois',
+          prenom: 'Pierre',
+          dateNaissance: new Date('2010-05-15'),
+          sexe: 'HOMME',
+          classe: {
+            _id: '507f1f77bcf86cd799439999',
+            nom: 'CM2',
+            prof: { nom: 'Martin', prenom: 'Marie' }
+          }
+        }
+      ];
+
+      Student.find.mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockStudents)
+      });
+
+      const result = await studentService.getStudentsGroupedByClass();
+
+      expect(result).toHaveLength(2);
+      expect(result[0].class.nom).toBe('CM1');
+      expect(result[1].class.nom).toBe('CM2');
+    });
+
+    it('should propagate database errors', async () => {
+      Student.find.mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockRejectedValue(new Error('DB error'))
+      });
+
+      await expect(studentService.getStudentsGroupedByClass())
+        .rejects.toThrow('Failed to group students by class: DB error');
+    });
+  });
 });

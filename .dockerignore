@@ -1,0 +1,64 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# Testing
+coverage
+*.test.js
+tests
+jest.config.js
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+digischools.sql
+.repomixignore
+
+# Documentation
+*.md
+docs
+plans
+reports
+
+# IDE
+.vscode
+.idea
+.opencode
+*.swp
+*.swo
+.editorconfig
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Logs
+logs
+*.log
+
+
+.claude
+.opencode
+monitoring
+scripts
+
+# Temp files
+tmp
+temp
+*.tmp

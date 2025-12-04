@@ -183,14 +183,169 @@ Three user roles with hierarchical permissions:
 Start API + MongoDB with one command:
 
 ```bash
-# Build and start containers
+# 1. Build and start containers
 docker-compose up -d
 
-# View logs
-docker-compose logs -f api
+# 2. Verify containers are running
+docker ps
 
+# Expected output:
+# CONTAINER ID   IMAGE                STATUS             PORTS
+# abc123...      digischool-api-api   Up (healthy)       0.0.0.0:3000->3000/tcp
+# def456...      mongo:7              Up (healthy)       0.0.0.0:27017->27017/tcp
+```
+
+### Docker Architecture
+
+The Docker setup includes:
+- **API container:** Node.js 20 Alpine with production-optimized build
+  - Container name: `digischool-api`
+  - Port: `3000`
+  - Health check: `/health` endpoint
+  - Auto-restart: `unless-stopped`
+- **MongoDB container:** MongoDB 7 with persistent storage
+  - Container name: `digischool-mongodb`
+  - Port: `27017`
+  - Volume: `mongodb_data` (persistent storage)
+  - Health check: `mongosh ping`
+- **Network:** Custom bridge network `digischool-network`
+- **Security:** API runs as non-root user, production dependencies only
+
+---
+
+### Access the Dockerized API
+
+#### 1. Health Check
+```bash
+curl http://localhost:3000/health
+# Response: {"status":"ok"}
+```
+
+#### 2. Swagger Documentation
+Open in browser:
+```
+http://localhost:3000/api-docs
+```
+
+#### 3. API Endpoints (with Authentication)
+
+**Register a user:**
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"Test12345"}'
+```
+
+**Response includes JWT token:**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {...},
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+**Access protected endpoints:**
+```bash
+# Use the token from registration/login
+curl http://localhost:3000/api/teachers \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+---
+
+### Access the Docker MongoDB Database
+
+#### Method 1: MongoDB Shell (from host machine)
+
+```bash
+# List all collections
+docker exec digischool-mongodb mongosh digischool --quiet --eval "db.getCollectionNames()"
+
+# View all teachers
+docker exec digischool-mongodb mongosh digischool --quiet --eval "db.teachers.find().pretty()"
+
+# View all users
+docker exec digischool-mongodb mongosh digischool --quiet --eval "db.users.find().pretty()"
+
+# Count documents
+docker exec digischool-mongodb mongosh digischool --quiet --eval "db.teachers.countDocuments()"
+
+# Database statistics
+docker exec digischool-mongodb mongosh digischool --quiet --eval "db.stats()"
+```
+
+#### Method 2: Interactive MongoDB Shell (Windows)
+
+```bash
+# For Windows Git Bash/MINGW, use winpty:
+winpty docker exec -it digischool-mongodb mongosh digischool
+
+# Then run commands:
+# > show collections
+# > db.teachers.find()
+# > db.users.countDocuments()
+# > exit
+```
+
+#### Method 3: MongoDB Compass (GUI - Recommended)
+
+1. Download [MongoDB Compass](https://www.mongodb.com/try/download/compass)
+2. Open Compass
+3. Connect using: `mongodb://localhost:27017/digischool`
+4. Browse all collections visually
+
+---
+
+### Docker Management Commands
+
+#### View Logs
+
+```bash
+# Follow API logs
+docker-compose logs -f api
+# or
+docker logs digischool-api -f
+
+# Follow MongoDB logs
+docker logs digischool-mongodb -f
+
+# View last 50 lines
+docker logs digischool-api --tail 50
+```
+
+#### Container Status
+
+```bash
+# Check container health
+docker ps
+
+# Detailed container info
+docker inspect digischool-api
+
+# Container resource usage
+docker stats digischool-api digischool-mongodb
+```
+
+#### Stop and Start
+
+```bash
 # Stop containers
 docker-compose down
+
+# Stop and remove volumes (deletes MongoDB data)
+docker-compose down -v
+
+# Start containers
+docker-compose up -d
+
+# Restart containers
+docker-compose restart
+
+# Rebuild and start (after code changes)
+docker-compose up -d --build
 ```
 
 **Services:**
