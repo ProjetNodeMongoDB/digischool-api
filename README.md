@@ -1,44 +1,63 @@
 # DigiSchool Backend API
 
-> A complete REST API for school management built with Node.js, Express.js, and MongoDB
+> REST API for school management with Node.js, Express.js, and MongoDB
 
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.x-blue.svg)](https://expressjs.com/)
+[![Express](https://img.shields.io/badge/Express-5.x-blue.svg)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.x-green.svg)](https://www.mongodb.com/)
-[![License](https://img.shields.io/badge/License-Educational-yellow.svg)]()
 
 ---
 
-## Project Overview
+## Presentation du Projet
 
-DigiSchool Backend API is a production-ready REST API for managing a school system, including students, teachers, classes, subjects, grades, and academic trimesters. This project converts an existing SQL database schema to MongoDB and implements modern backend best practices.
+DigiSchool Backend API is a complete REST API for managing a school system with students, teachers, classes, subjects, grades, and trimesters.
 
 **Key Features:**
-- Complete CRUD operations for 6 entities
-- JWT authentication and authorization
-- Input validation and error handling
+- CRUD operations for 6 entities (Students, Teachers, Classes, Subjects, Grades, Trimesters)
+- JWT authentication and role-based authorization (Admin, Teacher, Student)
+- Input validation with express-validator
 - Interactive Swagger documentation
-- Comprehensive testing (Jest + Supertest)
 - Docker containerization
 - Security middleware (Helmet, CORS, Rate-limiting)
+- Comprehensive testing with Jest
 
 ---
 
-## Quick Start
+## Liste des Dependances
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| express | ^5.1.0 | Web framework |
+| mongoose | ^8.20.0 | MongoDB ODM |
+| jsonwebtoken | ^9.0.2 | JWT authentication |
+| bcryptjs | ^3.0.3 | Password hashing |
+| express-validator | ^7.3.1 | Request validation |
+| helmet | ^8.1.0 | Security headers |
+| cors | ^2.8.5 | CORS support |
+| express-rate-limit | ^8.2.1 | Rate limiting |
+| swagger-ui-express | ^5.0.1 | API documentation |
+| jest | ^30.2.0 | Testing framework |
+| supertest | ^7.1.4 | HTTP testing |
+
+Install all dependencies:
+```bash
+npm install
+```
+
+---
+
+## Instructions pour Lancer l'API
 
 ### Prerequisites
-
 - Node.js 20+ ([Download](https://nodejs.org/))
-- MongoDB 7+ (local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
-- Docker Desktop (optional, for containerization)
-- Git
+- MongoDB 7+ (local or Docker)
 
-### Installation
+### Quick Start
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone <repository-url>
-cd digital-school-nodejs
+cd digischool-api
 
 # Install dependencies
 npm install
@@ -47,194 +66,121 @@ npm install
 cp .env.example .env
 # Edit .env with your configuration
 
-# Start MongoDB (if using local)
-mongod
-# Or use Docker:
+# Start MongoDB (Docker)
 docker run -d -p 27017:27017 --name mongodb mongo:7
 
 # Start development server
 npm run dev
 ```
 
-The API will be available at `http://localhost:3000`
+API available at: `http://localhost:3000`
 
-### Verify Installation
-
-```bash
-# Health check
-curl http://localhost:3000/health
-
-# Expected response:
-# {"status":"OK","message":"DigiSchool API is running","timestamp":"..."}
-```
-
----
-
-## Project Structure
-
-```
-digischool-api/
-├── src/
-│   ├── config/          # Database, Swagger configuration
-│   ├── models/          # Mongoose schemas
-│   ├── controllers/     # Request handlers
-│   ├── services/        # Business logic
-│   ├── routes/          # API routes
-│   ├── middlewares/     # Auth, validation, error handling
-│   ├── utils/           # Helper functions
-│   ├── app.js           # Express app setup
-│   └── server.js        # Entry point
-├── tests/
-│   ├── unit/            # Unit tests
-│   └── integration/     # API endpoint tests
-├── .env.example         # Environment template
-├── package.json
-├── Dockerfile
-└── docker-compose.yml
-```
-
----
-
-## API Endpoints
-
-### Authentication (Public)
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login and get JWT token
-
-### Protected Endpoints (Require JWT)
-
-All endpoints require `Authorization: Bearer <token>` header.
-
-| Resource | Endpoints |
-|----------|-----------|
-| **Students** | `GET, POST /api/students` <br> `GET, PUT, DELETE /api/students/:id` <br> `GET /api/students?classe=id` (filter by class) |
-| **Teachers** | `GET, POST /api/teachers` <br> `GET, PUT, DELETE /api/teachers/:id` <br> `GET /api/teachers?classe=id` (filter by class) |
-| **Classes** | `GET, POST /api/classes` <br> `GET, PUT, DELETE /api/classes/:id` |
-| **Subjects** | `GET, POST /api/subjects` <br> `GET, PUT, DELETE /api/subjects/:id` |
-| **Trimesters** | `GET, POST /api/trimesters` <br> `GET, PUT, DELETE /api/trimesters/:id` |
-| **Grades** | `GET, POST /api/grades` <br> `GET, PUT, DELETE /api/grades/:id` <br> `GET /api/grades?student=id&class=id&subject=id&trimester=id&groupBy=subject` (flexible filters) <br> `GET /api/grades/teachers/:teacherId/students-grades` |
-
-### System Endpoints (Public)
-- `GET /health` - Health check
-- `GET /api-docs` - Interactive Swagger documentation
-
-**Total:** 36 endpoints (Authentication: 5, Teachers: 5, Students: 5, Classes: 5, Subjects: 5, Trimesters: 5, Grades: 6)
-
----
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
+### Environment Variables (.env)
 
 ```env
-# Server
 NODE_ENV=development
 PORT=3000
-
-# Database
 MONGO_URI=mongodb://localhost:27017/digischool
-# For MongoDB Atlas:
-# MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/digischool
-
-# JWT
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRE=7d
-
-# Security
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
-CORS_ORIGIN=*
 ```
 
-**Important:** Never commit the `.env` file. Use `.env.example` as a template.
-
----
-
-## Available Scripts
+### Available Scripts
 
 ```bash
-# Development
-npm run dev              # Start with nodemon (hot reload)
-npm start                # Start production mode
-
-# Testing
-npm test                 # Run all tests
-npm run test:watch       # Watch mode for tests
-npm run test:coverage    # Generate coverage report
-
-# Code Quality
-npm run lint             # Run ESLint
-
-# Docker
-docker-compose up -d     # Start all containers
-docker-compose down      # Stop all containers
-docker-compose logs -f   # View logs
+npm run dev              # Development with nodemon
+npm start                # Production mode
+npm test                 # Run tests
+npm run test:coverage    # Test coverage report
+npm run lint             # ESLint check
 ```
 
 ---
 
-## Technology Stack
+## Documentation Swagger
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Runtime | Node.js | 20 LTS |
-| Framework | Express.js | 4.18.x |
-| Database | MongoDB | 7.x |
-| ODM | Mongoose | 8.x |
-| Authentication | JWT | 9.x |
-| Password Hashing | bcryptjs | 2.4.x |
-| Validation | express-validator | 7.x |
-| Testing | Jest + Supertest | 29.x |
-| API Documentation | Swagger UI Express | 5.x |
-| Security | Helmet, CORS, Rate-limit | Latest |
-| Containerization | Docker | Latest |
+Interactive API documentation with Swagger UI:
 
----
+```
+http://localhost:3000/api-docs
+```
 
-## Database Schema
+**Features:**
+- Complete endpoint documentation
+- Try-it-out functionality for all endpoints
+- Request/response schemas
+- JWT authentication support (click "Authorize" button)
 
-The project uses MongoDB with 7 collections:
-
-1. **teachers** - Teacher information
-2. **students** - Student records with class reference
-3. **classes** - Classes with teacher reference
-4. **subjects** - Academic subjects
-5. **trimesters** - Academic periods
-6. **grades** - Student grades (references students, classes, subjects, teachers, trimesters)
-7. **users** - Authentication data
-
-**Conversion from SQL:** The project converts the relational SQL schema from `digischools.sql` to a MongoDB document-based model while maintaining data relationships through ObjectId references.
+**Usage:**
+1. Start the API: `npm run dev`
+2. Open browser: `http://localhost:3000/api-docs`
+3. Test endpoints directly from the UI
 
 ---
 
-## Testing
+## Securite Basique
 
-### Run Tests
+### Security Measures Implemented
 
+1. **Helmet:** Secure HTTP headers (XSS, clickjacking protection)
+2. **CORS:** Controlled cross-origin requests
+3. **Rate Limiting:** 100 requests per 15 minutes per IP
+4. **Input Validation:** express-validator on all endpoints
+5. **Password Security:** bcrypt hashing (10 rounds)
+6. **Environment Variables:** All secrets in .env (never committed)
+7. **Error Handling:** No sensitive data exposed in responses
+
+### JWT Authentication
+
+All protected endpoints require:
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+**Flow:**
+1. Register: `POST /api/auth/register`
+2. Login: `POST /api/auth/login` (returns JWT token)
+3. Use token in Authorization header for protected routes
+
+**Example:**
 ```bash
-# All tests
-npm test
+# Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
 
-# Specific test file
-npm test students.test.js
-
-# Coverage report
-npm run test:coverage
+# Use token
+curl -X GET http://localhost:3000/api/students \
+  -H "Authorization: Bearer <your-token>"
 ```
 
-### Test Coverage Goals
-- Overall: 70%+
-- Services: 80%+
-- Controllers: 70%+
-- Routes: 100%
+### Role-Based Access Control (RBAC)
+
+Three user roles with hierarchical permissions:
+
+| Role | Permissions |
+|------|-------------|
+| **student** | Read access (GET endpoints) |
+| **teacher** | Read + Create/Update grades and classes |
+| **admin** | Full access (CRUD all resources + user management) |
+
+**Admin-only endpoints:**
+- `GET /api/auth/admin/users` - List all users
+- `PUT /api/auth/admin/users/:userId/role` - Update user role
+- `POST/PUT/DELETE` on Teachers, Students, Subjects, Trimesters
+
+**Teacher/Admin endpoints:**
+- `POST/PUT` on Grades and Classes
 
 ---
 
-## Docker Deployment
+## Etapes Docker
 
-### Build and Run with Docker
+### Docker Compose (Recommended)
+
+Start API + MongoDB with one command:
 
 ```bash
 # Build and start containers
@@ -247,134 +193,227 @@ docker-compose logs -f api
 docker-compose down
 ```
 
-The Docker setup includes:
-- **API container:** Node.js application on port 3000
-- **MongoDB container:** MongoDB 7 on port 27017
-- **Network:** Bridge network for container communication
-- **Volume:** Persistent MongoDB storage
+**Services:**
+- **API:** Node.js app on port 3000
+- **MongoDB:** Database on port 27017
+- **Network:** Bridge network `digischool-network`
+- **Volume:** Persistent storage `mongodb_data`
+
+### Dockerfile Only
+
+```bash
+# Build image
+docker build -t digischool-api .
+
+# Run container
+docker run -d -p 3000:3000 \
+  --env-file .env \
+  --name digischool-api \
+  digischool-api
+```
+
+### Docker Configuration
+
+**Dockerfile features:**
+- Multi-stage build (if needed)
+- Non-root user (node:node)
+- Production dependencies only
+- Health check endpoint
+- Alpine base image (smaller size)
+
+**docker-compose.yml:**
+- Service orchestration
+- Automatic MongoDB setup
+- Volume persistence
+- Network isolation
+- Container restart policies
 
 ---
 
-## API Documentation
+## Authentification JWT
 
-### Swagger UI
+### JWT Implementation
 
-Once the server is running, access the interactive API documentation at:
-
+**Token Structure:**
+```json
+{
+  "userId": "507f1f77bcf86cd799439011",
+  "email": "user@example.com",
+  "role": "student",
+  "iat": 1234567890,
+  "exp": 1234567890
+}
 ```
-http://localhost:3000/api-docs
+
+**Configuration:**
+- Algorithm: HS256
+- Secret: From JWT_SECRET environment variable
+- Expiry: 7 days (configurable via JWT_EXPIRE)
+
+### Authentication Flow
+
+1. **Register User:**
+```bash
+POST /api/auth/register
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "securePassword123",
+  "role": "student"
+}
 ```
 
-Features:
-- Complete API documentation
-- Try it out functionality
-- Request/response examples
-- Authentication support
+2. **Login:**
+```bash
+POST /api/auth/login
+{
+  "email": "john@example.com",
+  "password": "securePassword123"
+}
 
-### Postman Collection
+Response:
+{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "username": "john_doe",
+    "email": "john@example.com",
+    "role": "student"
+  }
+}
+```
 
-Import the API endpoints into Postman for manual testing. All endpoints are documented with request/response examples.
+3. **Access Protected Endpoints:**
+```bash
+GET /api/students
+Headers:
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Middleware Protection
+
+**authMiddleware.js:**
+- `protect` - Verifies JWT token (all protected routes)
+- `authorize(...roles)` - Checks user role permissions
+- `optionalAuth` - Token optional (future feature)
+
+**Usage in routes:**
+```javascript
+// Require authentication only
+router.get('/students', protect, studentController.getAll);
+
+// Require admin role
+router.post('/students', protect, authorize('admin'), studentController.create);
+
+// Require teacher or admin
+router.post('/grades', protect, authorize('admin', 'teacher'), gradeController.create);
+```
+
+### Security Best Practices
+
+- Passwords hashed with bcrypt before storage
+- JWT tokens stored client-side (localStorage/sessionStorage)
+- Tokens validated on every protected request
+- Expired tokens automatically rejected
+- No password fields returned in API responses
+- Role changes require admin authentication
 
 ---
 
-## Security Features
+## API Endpoints Summary
 
-- **Helmet:** Secure HTTP headers
-- **CORS:** Cross-origin resource sharing control
-- **Rate Limiting:** 100 requests per 15 minutes per IP
-- **JWT:** Stateless authentication with token expiry
-- **bcrypt:** Password hashing with salt (10 rounds)
-- **Input Validation:** express-validator on all endpoints
-- **Error Handling:** No sensitive data in production errors
-- **Environment Variables:** All secrets in .env
+**Total:** 36 endpoints
+
+### Authentication (5 endpoints)
+- `POST /api/auth/register` - Register new user (Public)
+- `POST /api/auth/login` - Login and get JWT (Public)
+- `GET /api/auth/me` - Get current user (Authenticated)
+- `GET /api/auth/admin/users` - List all users (Admin)
+- `PUT /api/auth/admin/users/:userId/role` - Update user role (Admin)
+
+### Protected Resources (Require JWT + appropriate role)
+
+| Resource | Endpoints | Permissions |
+|----------|-----------|-------------|
+| **Students** (5) | `GET /api/students`<br>`GET /api/students?classe=id`<br>`POST /api/students`<br>`GET /api/students/:id`<br>`PUT /api/students/:id`<br>`DELETE /api/students/:id` | GET: All<br>POST/PUT/DELETE: Admin |
+| **Teachers** (5) | `GET /api/teachers`<br>`GET /api/teachers?classe=id`<br>`POST /api/teachers`<br>`GET /api/teachers/:id`<br>`PUT /api/teachers/:id`<br>`DELETE /api/teachers/:id` | GET: All<br>POST/PUT/DELETE: Admin |
+| **Classes** (5) | `GET /api/classes`<br>`POST /api/classes`<br>`GET /api/classes/:id`<br>`PUT /api/classes/:id`<br>`DELETE /api/classes/:id` | GET: All<br>POST/PUT: Teacher/Admin<br>DELETE: Admin |
+| **Subjects** (5) | `GET /api/subjects`<br>`POST /api/subjects`<br>`GET /api/subjects/:id`<br>`PUT /api/subjects/:id`<br>`DELETE /api/subjects/:id` | GET: All<br>POST/PUT/DELETE: Admin |
+| **Trimesters** (5) | `GET /api/trimesters`<br>`POST /api/trimesters`<br>`GET /api/trimesters/:id`<br>`PUT /api/trimesters/:id`<br>`DELETE /api/trimesters/:id` | GET: All<br>POST/PUT/DELETE: Admin |
+| **Grades** (6) | `GET /api/grades`<br>`GET /api/grades?student=id&class=id&subject=id&trimester=id&groupBy=subject`<br>`POST /api/grades`<br>`GET /api/grades/:id`<br>`PUT /api/grades/:id`<br>`DELETE /api/grades/:id`<br>`GET /api/grades/teachers/:teacherId/students-grades` | GET: All<br>POST/PUT: Teacher/Admin<br>DELETE: Admin |
+
+### System (2 endpoints)
+- `GET /health` - Health check (Public)
+- `GET /api-docs` - Swagger UI (Public)
 
 ---
 
-## Development Team
+## Project Structure
 
-This project is designed for a team of 3 developers:
-
-- **Developer 1 (Backend Lead):** Project foundation, complex logic, Docker
-- **Developer 2 (API Developer):** CRUD entities, JWT authentication, testing
-- **Developer 3 (API Developer):** CRUD entities, Swagger documentation, testing
-
-**Timeline:** 15 working days (3 weeks)
+```
+digischool-api/
+├── src/
+│   ├── config/          # Database & Swagger config
+│   ├── models/          # Mongoose schemas
+│   ├── controllers/     # Request handlers
+│   ├── services/        # Business logic
+│   ├── routes/          # API routes with validation
+│   ├── middlewares/     # Auth, validation, error handling
+│   ├── app.js           # Express app setup
+│   └── server.js        # Entry point
+├── tests/
+│   ├── unit/            # Unit tests
+│   └── integration/     # API tests
+├── .env.example         # Environment template
+├── Dockerfile
+├── docker-compose.yml
+└── package.json
+```
 
 ---
 
-## Contributing
+## Testing
 
-### Git Workflow
+```bash
+# Run all tests
+npm test
 
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make changes and commit: `git commit -m "feat: add your feature"`
-3. Push to remote: `git push origin feature/your-feature`
-4. Create a pull request for review
+# Specific test file
+npm test students.test.js
 
-### Commit Message Format
+# Coverage report (target: 70%+)
+npm run test:coverage
 
+# Watch mode
+npm run test:watch
 ```
-<type>: <description>
-
-Types: feat, fix, test, docs, refactor, style, chore
-```
-
-### Code Review
-
-All code must be reviewed by at least one team member before merging.
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
-**MongoDB Connection Failed:**
+**MongoDB connection failed:**
 ```bash
-# Check if MongoDB is running
-ps aux | grep mongod
-
-# Start MongoDB
-mongod
-# Or
-docker start mongodb
+docker ps | grep mongo    # Check if running
+docker start mongodb      # Start if stopped
 ```
 
-**Port Already in Use:**
+**Port 3000 in use:**
 ```bash
-# Find and kill process on port 3000
-lsof -i :3000
-kill -9 <PID>
+lsof -i :3000            # Find process
+kill -9 <PID>            # Kill process
 ```
 
-**JWT Token Invalid:**
-- Check Authorization header format: `Bearer <token>`
-- Verify JWT_SECRET in .env
-- Ensure token hasn't expired
-
+**JWT token invalid:**
+- Verify format: `Authorization: Bearer <token>`
+- Check JWT_SECRET in .env
+- Token may be expired (default: 7 days)
 
 ---
 
-## Roadmap
+## License
 
-### MVP (Current)
--  Complete CRUD for 6 entities
--  JWT authentication
--  Swagger documentation
--  Docker containerization
--  70%+ test coverage
+Educational project for learning purposes.
 
-### Future Enhancements
-- Pagination for large datasets
-- Advanced search and filtering
-- Bulk operations
-- Data export (CSV, PDF)
-- Email notifications
-- File uploads
-- Advanced RBAC
-- Refresh token mechanism
-- CI/CD pipeline
-
----
-
-**Built with ❤️ for 3 women developers**
+**Built with care for 3 women developers**
