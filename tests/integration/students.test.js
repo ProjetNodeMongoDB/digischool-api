@@ -681,5 +681,17 @@ describe('Student API', () => {
 
       expect(response.body.success).toBe(false);
     });
+
+    it('should reject conflicting classe and groupBy parameters', async () => {
+      const response = await request(app)
+        .get(`/api/students?classe=${class1Id}&groupBy=class`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Validation failed');
+      expect(response.body.details).toBeDefined();
+      expect(response.body.details[0].message).toContain('mutually exclusive');
+    });
   });
 });
