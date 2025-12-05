@@ -242,7 +242,7 @@ curl -X POST http://localhost:3000/api/auth/register \
   "success": true,
   "data": {
     "user": {...},
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    "token": "eyJhbGciOi..."
   }
 }
 ```
@@ -354,18 +354,6 @@ docker-compose up -d --build
 - **Network:** Bridge network `digischool-network`
 - **Volume:** Persistent storage `mongodb_data`
 
-### Dockerfile Only
-
-```bash
-# Build image
-docker build -t digischool-api .
-
-# Run container
-docker run -d -p 3000:3000 \
-  --env-file .env \
-  --name digischool-api \
-  digischool-api
-```
 
 ### Docker Configuration
 
@@ -429,7 +417,7 @@ POST /api/auth/login
 Response:
 {
   "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token": "eyJhbGciOi...",
   "user": {
     "id": "507f1f77bcf86cd799439011",
     "username": "john_doe",
@@ -443,7 +431,7 @@ Response:
 ```bash
 GET /api/students
 Headers:
-  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  Authorization: Bearer eyJhbGciOi...
 ```
 
 ### Middleware Protection
@@ -568,8 +556,6 @@ kill -9 <PID>            # Kill process
 ---
 
 ## License
-
-Educational project for learning purposes.
 
 **Built with care by 3 women developers: Women in Tech**
 
