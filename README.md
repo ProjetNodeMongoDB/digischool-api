@@ -571,4 +571,8 @@ kill -9 <PID>            # Kill process
 
 Educational project for learning purposes.
 
-**Built with care for 3 women developers**
+**Built with care by 3 women developers: Women in Tech**
+
+- **Sarah GONIN** - [GitHub](https://github.com/hagonin)
+- **Angeline GOMEZ** - [GitHub](https://github.com/Glacycy)
+- **Laurence SAGOT** - [GitHub](https://github.com/Amethyste34)
