@@ -8,8 +8,18 @@ const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware with CSP configuration for Swagger UI
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "http://localhost:3000", "https://localhost:3000"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Required for Swagger UI
+      styleSrc: ["'self'", "'unsafe-inline'"], // Required for Swagger UI
+      imgSrc: ["'self'", "data:", "https:"] // Required for Swagger UI icons
+    }
+  }
+}));
 
 // CORS configuration
 app.use(cors({
