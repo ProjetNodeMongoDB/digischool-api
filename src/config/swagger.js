@@ -1,5 +1,13 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
+// Determine API server URL based on environment
+const getServerUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.API_URL || 'https://digischool-api.onrender.com';
+  }
+  return process.env.API_URL || 'http://localhost:3000';
+};
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -14,8 +22,8 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server'
+        url: getServerUrl(),
+        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
       }
     ],
     components: {
